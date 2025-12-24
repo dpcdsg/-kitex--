@@ -15,3 +15,5 @@ func FollowListKey(uid int64) string {
 func FollowerListKey(uid int64) string {
 	return followerKey + strconv.FormatInt(uid, 10)
 }
+
+//基于git，方便更新
