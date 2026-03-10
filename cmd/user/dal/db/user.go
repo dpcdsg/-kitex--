@@ -10,24 +10,15 @@ import (
 )
 
 type User struct {
-	Id              int64
-	Username        string
-	Password        string
-	Avatar          string `gorm:"default:https://files.ozline.icu/images/avatar.jpg"`
-	BackgroundImage string `gorm:"default:https://files.ozline.icu/images/BannerImg_221116.jpeg"`
-	Signature       string `gorm:"default:NOT NULL BUT SEEMS NULL"`
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	DeletedAt       gorm.DeletedAt `gorm:"index"`
+	Id        int64
+	Username  string
+	Password  string
+	Avatar    string `gorm:"default:https://files.ozline.icu/images/avatar.jpg"`
+	Signature string `gorm:"default:NOT NULL BUT SEEMS NULL"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
-
-/*
-
-TODO: follow_count, follower_count, is_follow, work_count, favorite_count, total_favorited(string)
-
-很迷的, 我觉得很多东西不需要
-
-*/
 
 func CreateUser(ctx context.Context, user *User) (*User, error) {
 	userResp := new(User)

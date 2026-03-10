@@ -8,15 +8,9 @@ struct BaseResp {
 struct User {
     1: i64 id,
     2: string name,
-    3: i64 follow_count,
-    4: i64 follower_count,
-    5: bool is_follow
-    6: string avatar,
-    7: string background_image,
-    8: string signature,
-    9: i64 total_favorited,
-    10: i64 work_count,
-    11: i64 favorited_count,
+    3: string avatar,
+    4: string signature,
+    5: string created_at,
 }
 
 struct RegisterRequest {

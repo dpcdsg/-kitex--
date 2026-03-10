@@ -1,76 +1,49 @@
 namespace go api
 
-// Model
+// ==================== Models ====================
 
 struct User {
     1: required i64 id,
     2: required string name,
-    3: optional i64 follow_count,
-    4: optional i64 follower_count,
-    5: required bool is_follow,
-    6: optional string avatar,
-    7: optional string background_image,
-    8: optional string signature,
-    9: optional i64 total_favorited,
-    10: optional i64 work_count,
-    11: optional i64 favorite_count,
+    3: optional string avatar,
+    4: optional string signature,
 }
 
-struct Video {
-    1: required i64 id,
-    2: required User author,
-    3: required string play_url,
-    4: required string cover_url,
-    5: required i64 favorite_count,
-    6: required i64 comment_count,
-    7: required bool is_favorite,
-    8: required string title,
-}
-
-struct Comment {
-    1: required i64 id,
-    2: required User user,
-    3: required string content,
-    4: required string create_date,
-}
-
-struct FriendUser {
+struct Product {
     1: required i64 id,
     2: required string name,
-    3: optional i64 follow_count,
-    4: optional i64 follower_count,
-    5: required bool is_follow,
-    6: optional string avatar,
-    7: optional string background_image,
-    8: optional string signature,
-    9: optional i64 total_favorited,
-    10: optional i64 work_count,
-    11: optional i64 favorite_count,
-    12: optional string message,
-    13: required i64 msgType, // 0 => 当前请求用户接收的消息 1=>当前请求用户发送的消息
+    3: required string description,
+    4: required i64 price,
+    5: required i64 stock,
+    6: required string image_url,
+    7: required string category,
 }
 
-struct Message {
+struct SeckillActivity {
     1: required i64 id,
-    2: required i64 to_user_id,
-    3: required i64 from_user_id,
-    4: required string content,
-    5: required string create_time,
+    2: required i64 product_id,
+    3: required string product_name,
+    4: required i64 seckill_price,
+    5: required i64 total_stock,
+    6: required i64 available_stock,
+    7: required string start_time,
+    8: required string end_time,
+    9: required i64 status,
 }
 
-// Basic
-
-struct FeedRequest {
-    1: optional i64 latest_time,
-    2: optional string token,
+struct Order {
+    1: required i64 id,
+    2: required string order_no,
+    3: required i64 user_id,
+    4: required i64 product_id,
+    5: required string product_name,
+    6: required i64 activity_id,
+    7: required i64 amount,
+    8: required i64 status,
+    9: required string created_at,
 }
 
-struct FeedResponse {
-    1: required i64 status_code = 0,
-    2: optional string status_msg,
-    3: required list<Video> video_list,
-    4: optional i64 next_time,
-}
+// ==================== User ====================
 
 struct UserRegisterRequest {
     1: required string username,
@@ -103,177 +76,176 @@ struct UserRequest {
 
 struct UserResponse {
     1: required i64 status_code = 0,
-    2: optional i64 status_msg,
+    2: optional string status_msg,
     3: required User user,
 }
 
-struct PublishActionRequest {
+// ==================== Product ====================
+
+struct ProductCreateRequest {
     1: required string token,
-    // 2: required binary data,
-    2: required string title,
+    2: required string name,
+    3: required string description,
+    4: required i64 price,
+    5: required i64 stock,
+    6: required string image_url,
+    7: required string category,
 }
 
-struct PublishActionResponse {
+struct ProductCreateResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
+    3: required Product product,
 }
 
-struct PublishListRequest {
-    1: required i64 user_id,
-    2: required string token,
+struct ProductDetailRequest {
+    1: required i64 product_id,
+    2: optional string token,
 }
 
-struct PublishListResponse {
+struct ProductDetailResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
-    3: required list<Video> video_list,
+    3: required Product product,
 }
 
-// Interaction
+struct ProductListRequest {
+    1: optional string token,
+    2: optional i64 page,
+    3: optional i64 size,
+    4: optional string category,
+}
 
-struct FavoriteActionRequest {
+struct ProductListResponse {
+    1: required i64 status_code = 0,
+    2: optional string status_msg,
+    3: required list<Product> product_list,
+    4: required i64 total,
+}
+
+// ==================== Seckill ====================
+
+struct SeckillCreateRequest {
     1: required string token,
-    2: required i64 video_id,
-    3: required i64 action_type, // 1-点赞, 2-取消点赞
+    2: required i64 product_id,
+    3: required i64 seckill_price,
+    4: required i64 total_stock,
+    5: required string start_time,
+    6: required string end_time,
 }
 
-struct FavoriteActionResponse {
+struct SeckillCreateResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
+    3: required SeckillActivity activity,
 }
 
-struct FavoriteListRequest {
-    1: required i64 user_id,
-    2: required string token,
+struct SeckillListRequest {
+    1: optional string token,
+    2: optional i64 status,
+    3: optional i64 page,
+    4: optional i64 size,
 }
 
-struct FavoriteListResponse {
+struct SeckillListResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
-    3: required list<Video> video_list,
+    3: required list<SeckillActivity> activity_list,
+    4: required i64 total,
 }
 
-struct CommentActionRequest {
+struct SeckillDetailRequest {
+    1: required i64 activity_id,
+    2: optional string token,
+}
+
+struct SeckillDetailResponse {
+    1: required i64 status_code = 0,
+    2: optional string status_msg,
+    3: required SeckillActivity activity,
+}
+
+struct SeckillActionRequest {
     1: required string token,
-    2: required i64 video_id,
-    3: required i64 action_type,
-    4: optional string comment_text,
-    5: optional i64 comment_id,
+    2: required i64 activity_id,
 }
 
-struct CommentActionResponse {
+struct SeckillActionResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
-    3: optional Comment comment, // 评论成功才返回
+    3: required string order_no,
 }
 
-struct CommentListRequest {
+// ==================== Order ====================
+
+struct OrderListRequest {
     1: required string token,
-    2: required i64 video_id,
+    2: optional i64 status,
+    3: optional i64 page,
+    4: optional i64 size,
 }
 
-struct CommentListResponse {
+struct OrderListResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
-    3: required list<Comment> comment_list,
+    3: required list<Order> order_list,
+    4: required i64 total,
 }
 
-// Social
-
-struct RelationActionRequest {
+struct OrderDetailRequest {
     1: required string token,
-    2: required i64 to_user_id,
-    3: required i64 action_type, // 1-关注, 2-取消关注
+    2: required string order_no,
 }
 
-struct RelationActionResponse {
+struct OrderDetailResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
+    3: required Order order,
 }
 
-struct RelationFollowListRequest {
-    1: required i64 user_id,
-    2: required string token,
-}
-
-struct RelationFollowListResponse {
-    1: required i64 status_code = 0,
-    2: optional string status_msg,
-    3: required list<User> user_list,
-}
-
-struct RelationFollowerListRequest {
-    1: required i64 user_id,
-    2: required string token,
-}
-
-struct RelationFollowerListResponse {
-    1: required i64 status_code = 0,
-    2: optional string status_msg,
-    3: required list<User> user_list,
-}
-
-struct RelationFriendListRequest {
-    1: required i64 user_id,
-    2: required string token,
-}
-
-struct RelationFriendListResponse {
-    1: required i64 status_code = 0,
-    2: optional string status_msg,
-    3: required list<FriendUser> user_list,
-}
-
-struct MessageChatRequest {
+struct OrderPayRequest {
     1: required string token,
-    2: required i64 to_user_id,
-    // 3: required i64 pre_msg_time, // 上次最新消息的时间
+    2: required string order_no,
 }
 
-struct MessageChatResponse {
+struct OrderPayResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
-    3: required list<Message> message_list,
 }
 
-struct MessageActionRequest {
+struct OrderCancelRequest {
     1: required string token,
-    2: required i64 to_user_id,
-    3: required i64 action_type, // 1-发送消息
-    4: required string content,
+    2: required string order_no,
 }
 
-struct MessageActionResponse {
+struct OrderCancelResponse {
     1: required i64 status_code = 0,
-    2: required string status_msg,
+    2: optional string status_msg,
 }
 
+// ==================== Services ====================
 
-service BasicService {
-    FeedResponse Feed(1: FeedRequest req) (api.get="/douyin/feed/")
-
-    UserRegisterResponse UserRegister(1: UserRegisterRequest req) (api.post="/douyin/user/register/")
-    UserLoginResponse UserLogin(1: UserLoginRequest req) (api.post="/douyin/user/login/")
-    UserResponse UserInfo(1: UserRequest req) (api.get="/douyin/user/")
-
-    PublishActionResponse PublishAction(1: PublishActionRequest req) (api.post="/douyin/publish/action/")
-    PublishListResponse PublishList(1: PublishListRequest req) (api.get="/douyin/publish/list/")
+service UserService {
+    UserRegisterResponse UserRegister(1: UserRegisterRequest req) (api.post="/seckill/user/register/")
+    UserLoginResponse UserLogin(1: UserLoginRequest req) (api.post="/seckill/user/login/")
+    UserResponse UserInfo(1: UserRequest req) (api.get="/seckill/user/")
 }
 
-service InteractionService {
-    FavoriteActionResponse FavoriteAction(1: FavoriteActionRequest req) (api.post="/douyin/favorite/action/")
-    FavoriteListResponse FavoriteList(1: FavoriteListRequest req) (api.get="/douyin/favorite/list/")
+service ProductService {
+    ProductCreateResponse ProductCreate(1: ProductCreateRequest req) (api.post="/seckill/product/create/")
+    ProductDetailResponse ProductDetail(1: ProductDetailRequest req) (api.get="/seckill/product/detail/")
+    ProductListResponse ProductList(1: ProductListRequest req) (api.get="/seckill/product/list/")
 
-    CommentActionResponse CommentAction(1: CommentActionRequest req) (api.post="/douyin/comment/action/")
-    CommentListResponse CommentList(1: CommentListRequest req) (api.get="/douyin/comment/list/")
+    SeckillCreateResponse SeckillCreate(1: SeckillCreateRequest req) (api.post="/seckill/activity/create/")
+    SeckillListResponse SeckillList(1: SeckillListRequest req) (api.get="/seckill/activity/list/")
+    SeckillDetailResponse SeckillDetail(1: SeckillDetailRequest req) (api.get="/seckill/activity/detail/")
 }
 
-service SocialService {
-    RelationActionResponse RelationAction(1: RelationActionRequest req) (api.post="/douyin/relation/action/")
-    RelationFollowListResponse RelationFollowList(1: RelationFollowListRequest req) (api.get="/douyin/relation/follow/list/")
-    RelationFollowerListResponse RelationFollowerList(1: RelationFollowerListRequest req) (api.get="/douyin/relation/follower/list/")
-    RelationFriendListResponse RelationFriendList(1: RelationFriendListRequest req) (api.get="/douyin/relation/friend/list/")
+service OrderService {
+    SeckillActionResponse SeckillAction(1: SeckillActionRequest req) (api.post="/seckill/action/")
 
-    MessageActionResponse MessageAction(1: MessageActionRequest req) (api.post="/douyin/message/action/")
-    MessageChatResponse MessageChat(1: MessageChatRequest req) (api.get="/douyin/message/chat/")
+    OrderListResponse OrderList(1: OrderListRequest req) (api.get="/seckill/order/list/")
+    OrderDetailResponse OrderDetail(1: OrderDetailRequest req) (api.get="/seckill/order/detail/")
+    OrderPayResponse OrderPay(1: OrderPayRequest req) (api.post="/seckill/order/pay/")
+    OrderCancelResponse OrderCancel(1: OrderCancelRequest req) (api.post="/seckill/order/cancel/")
 }

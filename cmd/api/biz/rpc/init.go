@@ -1,25 +1,19 @@
 package rpc
 
 import (
-	"github.com/ozline/tiktok/kitex_gen/chat/messageservice"
-	"github.com/ozline/tiktok/kitex_gen/follow/followservice"
-	"github.com/ozline/tiktok/kitex_gen/interaction/interactionservice"
+	"github.com/ozline/tiktok/kitex_gen/order/orderservice"
+	"github.com/ozline/tiktok/kitex_gen/product/productservice"
 	"github.com/ozline/tiktok/kitex_gen/user/userservice"
-	"github.com/ozline/tiktok/kitex_gen/video/videoservice"
 )
 
 var (
-	userClient        userservice.Client
-	followClient      followservice.Client
-	interactionClient interactionservice.Client
-	chatClient        messageservice.Client
-	videoClient       videoservice.Client
+	userClient    userservice.Client
+	productClient productservice.Client
+	orderClient   orderservice.Client
 )
 
 func Init() {
 	InitUserRPC()
-	InitFollowRPC()
-	InitInteractionRPC()
-	InitChatRPC()
-	InitVideoRPC()
+	InitProductRPC()
+	InitOrderRPC()
 }

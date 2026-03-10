@@ -3,90 +3,74 @@ package constants
 import "time"
 
 const (
-	// auth
 	JWTValue = "MTAxNTkwMTg1Mw=="
 	StartID  = 10000
 
-	// Viper config
-	// etcdAddress = "http://127.0.0.1:2379"
+	// Redis DB
+	RedisDBProduct = 4
+	RedisDBOrder   = 5
 
-	// redis
-	ReidsDB_Chat       = 1
-	RedisDBFollow      = 2
-	RedisDBInteraction = 3
-	RedisDBVideo       = 4
-	CommentExpiredTime = 1 * time.Hour
-	LikeExpiredTime    = 1 * time.Hour
-	NoDataExpiredTime  = 1 * time.Minute
+	// Redis 缓存时间
+	SeckillStockExpire = 24 * time.Hour
+	OrderExpire        = 30 * time.Minute
 	LockTime           = 1 * time.Second
 	LockWaitTime       = 5 * time.Millisecond
 	MaxRetryTimes      = 3
-	UserLikeKey        = "user:like"
-	VideoLikeCountKey  = "video:like:count"
-	CountKey           = "count"
-	CommentKey         = "comment"
-	CommentNXKey       = "commentNX"
-	CountNXKey         = "countNX"
+
+	// Redis Key
+	SeckillStockKeyPrefix = "seckill:stock:"
+	SeckillOrderKeyPrefix = "seckill:order:"
+	OrderKeyPrefix        = "order:"
+
 	// RPC
 	MuxConnection  = 1
 	RPCTimeout     = 3 * time.Second
 	ConnectTimeout = 50 * time.Millisecond
 
-	// service name
-	APIServiceName         = "api"
-	UserServiceName        = "user"
-	InteractionServiceName = "interaction"
-	FollowServiceName      = "follow"
-	ChatServiceName        = "chat"
-	VideoServiceName       = "video"
+	// 服务名
+	APIServiceName     = "api"
+	UserServiceName    = "user"
+	ProductServiceName = "product"
+	OrderServiceName   = "order"
 
-	// db table name
+	// 数据库表名
 	UserTableName     = "user"
-	ChatTableName     = "message"
-	CommentTableName  = "comment"
-	FavoriteTableName = "favorite"
-	FollowTableName   = "follow"
-	VideoTableName    = "video"
+	ProductTableName  = "product"
+	SeckillTableName  = "seckill_activity"
+	OrderTableName    = "order"
 
-	// snowflake
+	// Snowflake
 	SnowflakeWorkerID     = 0
 	SnowflakeDatacenterID = 0
 
-	// limit
+	// 限制
 	MaxConnections  = 1000
 	MaxQPS          = 100
-	MaxVideoSize    = 300000
 	MaxListLength   = 100
 	MaxIdleConns    = 10
 	MaxGoroutines   = 10
 	MaxOpenConns    = 100
 	ConnMaxLifetime = 10 * time.Second
 
-	// Aliyun SDK
-	UplaodRoutines = 3 // 并发数量
-	PartSize       = 100 * 1024
-
-	// page
+	// 分页默认值
 	PageNum  = 1
 	PageSize = 10
 
-	// ffmpeg
-	FrameNum = 1
+	// 订单状态
+	OrderStatusPending   = 0
+	OrderStatusPaid      = 1
+	OrderStatusCancelled = 2
+	OrderStatusExpired   = 3
 
-	// interaction type
-	AddComment    = 1
-	DeleteComment = 2
-	Like          = 1
-	Dislike       = 2
+	// 秒杀活动状态
+	SeckillStatusPending = 0
+	SeckillStatusActive  = 1
+	SeckillStatusEnded   = 2
 
-	// follow type
-	FollowAction   = 1
-	UnFollowAction = 2
+	// 商品状态
+	ProductStatusOn  = 1
+	ProductStatusOff = 0
 
-	// follow limit
-	Interval         = 1 * time.Second
-	ActionRate       = 100
-	FollowListRate   = 200
-	FollowerListRate = 200
-	FriendListRate   = 200
+	// MQ
+	SeckillOrderQueue = "seckill_order"
 )
