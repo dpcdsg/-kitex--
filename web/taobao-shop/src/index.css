@@ -1,0 +1,133 @@
+:root {
+  --tb-orange: #ff5000;
+  --tb-orange-dark: #e24700;
+  --tb-bg: #f4f4f4;
+  --tb-text: #3c3c3c;
+  --tb-border: #e5e5e5;
+  --tb-white: #fff;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  line-height: 1.5;
+  color: var(--tb-text);
+  background: var(--tb-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--tb-text);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--tb-orange);
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 12px;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--tb-orange), #ff9000);
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--tb-border);
+  padding: 6px 14px;
+  border-radius: 4px;
+}
+
+.card {
+  background: var(--tb-white);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(255, 80, 0, 0.12);
+}
+
+.price {
+  color: var(--tb-orange);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.price::before {
+  content: '¥';
+  font-size: 0.85em;
+  margin-right: 2px;
+}
+
+.muted {
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.form-row {
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.form-row input,
+.form-row textarea,
+.form-row select {
+  width: 100%;
+  max-width: 420px;
+  padding: 8px 10px;
+  border: 1px solid var(--tb-border);
+  border-radius: 4px;
+}
+
+.err {
+  color: #c00;
+  font-size: 0.9rem;
+  margin-top: 8px;
+}
+
+.grid-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
