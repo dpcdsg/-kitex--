@@ -15,8 +15,9 @@ func Product(p *product.Product) *api.Product {
 		Description: p.Description,
 		Price:       p.Price,
 		Stock:       p.Stock,
-		ImageUrl:    p.ImageUrl,
+		ImageURL:    p.ImageUrl,
 		Category:    p.Category,
+		SellerID:    p.SellerId,
 	}
 }
 

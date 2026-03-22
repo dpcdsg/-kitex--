@@ -11,6 +11,7 @@ func Product(p *db.Product) *product.Product {
 	}
 	return &product.Product{
 		Id:          p.Id,
+		SellerId:    p.SellerId,
 		Name:        p.Name,
 		Description: p.Description,
 		Price:       p.Price,

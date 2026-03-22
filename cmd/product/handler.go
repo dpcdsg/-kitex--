@@ -7,6 +7,7 @@ import (
 	"github.com/ozline/tiktok/cmd/product/service"
 	"github.com/ozline/tiktok/kitex_gen/product"
 	"github.com/ozline/tiktok/pkg/errno"
+	"github.com/ozline/tiktok/pkg/utils"
 )
 
 type ProductServiceImpl struct{}
@@ -19,7 +20,13 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, req *product.Cre
 		return resp, nil
 	}
 
-	p, err := service.NewProductService(ctx).CreateProduct(req)
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		resp.Base = pack.BuildBaseResp(errno.AuthorizationFailedError)
+		return resp, nil
+	}
+
+	p, err := service.NewProductService(ctx).CreateProduct(claims.UserId, req)
 	if err != nil {
 		resp.Base = pack.BuildBaseResp(err)
 		return resp, nil
@@ -27,6 +34,7 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, req *product.Cre
 
 	resp.Base = pack.BuildBaseResp(nil)
 	resp.Product = pack.Product(p)
+	resp.SellerId = p.SellerId
 	return
 }
 
@@ -46,6 +54,33 @@ func (s *ProductServiceImpl) GetProduct(ctx context.Context, req *product.GetPro
 
 	resp.Base = pack.BuildBaseResp(nil)
 	resp.Product = pack.Product(p)
+	resp.SellerId = p.SellerId
+	return
+}
+
+func (s *ProductServiceImpl) UpdateProduct(ctx context.Context, req *product.UpdateProductRequest) (resp *product.UpdateProductResponse, err error) {
+	resp = new(product.UpdateProductResponse)
+
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		resp.Base = pack.BuildBaseResp(errno.AuthorizationFailedError)
+		return resp, nil
+	}
+
+	if len(req.Name) == 0 || req.Price <= 0 || req.Stock < 0 || req.ProductId <= 0 {
+		resp.Base = pack.BuildBaseResp(errno.ParamError)
+		return resp, nil
+	}
+
+	p, err := service.NewProductService(ctx).UpdateProduct(claims.UserId, req)
+	if err != nil {
+		resp.Base = pack.BuildBaseResp(err)
+		return resp, nil
+	}
+
+	resp.Base = pack.BuildBaseResp(nil)
+	resp.Product = pack.Product(p)
+	resp.SellerId = p.SellerId
 	return
 }
 

@@ -9,10 +9,17 @@ func User(u *user.User) *api.User {
 	if u == nil {
 		return nil
 	}
-	return &api.User{
-		ID:        u.Id,
-		Name:      u.Name,
-		Avatar:    u.Avatar,
-		Signature: u.Signature,
+	out := &api.User{
+		ID:   u.Id,
+		Name: u.Name,
 	}
+	if u.Avatar != "" {
+		a := u.Avatar
+		out.Avatar = &a
+	}
+	if u.Signature != "" {
+		s := u.Signature
+		out.Signature = &s
+	}
+	return out
 }

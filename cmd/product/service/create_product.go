@@ -5,8 +5,9 @@ import (
 	"github.com/ozline/tiktok/kitex_gen/product"
 )
 
-func (s *ProductService) CreateProduct(req *product.CreateProductRequest) (*db.Product, error) {
+func (s *ProductService) CreateProduct(sellerId int64, req *product.CreateProductRequest) (*db.Product, error) {
 	p := &db.Product{
+		SellerId:    sellerId,
 		Name:        req.Name,
 		Description: req.Description,
 		Price:       req.Price,

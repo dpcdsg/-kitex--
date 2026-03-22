@@ -7,12 +7,21 @@ import (
 	"github.com/ozline/tiktok/cmd/product/dal/db"
 	"github.com/ozline/tiktok/kitex_gen/product"
 	"github.com/ozline/tiktok/pkg/errno"
+	"github.com/ozline/tiktok/pkg/utils"
 )
 
 func (s *ProductService) CreateSeckill(req *product.CreateSeckillRequest) (*db.SeckillActivity, error) {
-	_, err := db.GetProductByID(s.ctx, req.ProductId)
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		return nil, errno.AuthorizationFailedError
+	}
+
+	prod, err := db.GetProductByID(s.ctx, req.ProductId)
 	if err != nil {
 		return nil, errno.ParamError.WithMessage("product not found")
+	}
+	if prod.SellerId != claims.UserId {
+		return nil, errno.ProductPermissionDeniedError
 	}
 
 	startTime, err := time.Parse(time.RFC3339, req.StartTime)

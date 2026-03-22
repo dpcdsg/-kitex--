@@ -14,6 +14,7 @@ struct Product {
     6: string image_url,
     7: string category,
     8: i64 status,
+    9: i64 seller_id,
 }
 
 struct SeckillActivity {
