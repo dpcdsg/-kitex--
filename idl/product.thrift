@@ -41,6 +41,24 @@ struct CreateProductRequest {
 struct CreateProductResponse {
     1: BaseResp base,
     2: Product product,
+    3: i64 seller_id,
+}
+
+struct UpdateProductRequest {
+    1: string token,
+    2: i64 product_id,
+    3: string name,
+    4: string description,
+    5: i64 price,
+    6: i64 stock,
+    7: string image_url,
+    8: string category,
+}
+
+struct UpdateProductResponse {
+    1: BaseResp base,
+    2: Product product,
+    3: i64 seller_id,
 }
 
 struct GetProductRequest {
@@ -51,6 +69,7 @@ struct GetProductRequest {
 struct GetProductResponse {
     1: BaseResp base,
     2: Product product,
+    3: i64 seller_id,
 }
 
 struct ListProductsRequest {
@@ -114,6 +133,7 @@ struct DeductStockResponse {
 
 service ProductService {
     CreateProductResponse CreateProduct(1: CreateProductRequest req),
+    UpdateProductResponse UpdateProduct(1: UpdateProductRequest req),
     GetProductResponse GetProduct(1: GetProductRequest req),
     ListProductsResponse ListProducts(1: ListProductsRequest req),
     CreateSeckillResponse CreateSeckill(1: CreateSeckillRequest req),

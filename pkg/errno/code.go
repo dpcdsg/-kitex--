@@ -22,4 +22,5 @@ const (
 	OrderExpiredErrorCode       = 10203
 
 	ProductNotFoundErrorCode    = 10301
+	ProductPermissionDeniedCode = 10302
 )

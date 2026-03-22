@@ -21,5 +21,6 @@ var (
 	OrderStatusError   = NewErrNo(OrderStatusErrorCode, "order status error")
 	OrderExpiredError  = NewErrNo(OrderExpiredErrorCode, "order expired")
 
-	ProductNotFoundError = NewErrNo(ProductNotFoundErrorCode, "product not found")
+	ProductNotFoundError       = NewErrNo(ProductNotFoundErrorCode, "product not found")
+	ProductPermissionDeniedError = NewErrNo(ProductPermissionDeniedCode, "no permission to modify this product")
 )

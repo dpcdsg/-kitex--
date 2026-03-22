@@ -17,6 +17,7 @@ struct Product {
     5: required i64 stock,
     6: required string image_url,
     7: required string category,
+    8: required i64 seller_id,
 }
 
 struct SeckillActivity {
@@ -93,6 +94,23 @@ struct ProductCreateRequest {
 }
 
 struct ProductCreateResponse {
+    1: required i64 status_code = 0,
+    2: optional string status_msg,
+    3: required Product product,
+}
+
+struct ProductUpdateRequest {
+    1: required string token,
+    2: required i64 product_id,
+    3: required string name,
+    4: required string description,
+    5: required i64 price,
+    6: required i64 stock,
+    7: required string image_url,
+    8: required string category,
+}
+
+struct ProductUpdateResponse {
     1: required i64 status_code = 0,
     2: optional string status_msg,
     3: required Product product,
@@ -233,6 +251,7 @@ service UserService {
 
 service ProductService {
     ProductCreateResponse ProductCreate(1: ProductCreateRequest req) (api.post="/seckill/product/create/")
+    ProductUpdateResponse ProductUpdate(1: ProductUpdateRequest req) (api.post="/seckill/product/update/")
     ProductDetailResponse ProductDetail(1: ProductDetailRequest req) (api.get="/seckill/product/detail/")
     ProductListResponse ProductList(1: ProductListRequest req) (api.get="/seckill/product/list/")
 
