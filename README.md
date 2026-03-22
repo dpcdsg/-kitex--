@@ -1,8 +1,10 @@
-# tiktok
+# FlashMall（闪购商城）
 
 English | [简体中文](./docs/zh-cn.md)
 
-**tiktok** is a distributed **simple-tiktok** backend based on RPC and HTTP protocols using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana
+**FlashMall** is a Kitex-based e-commerce flash-sale (秒杀) system: microservices over RPC and HTTP, using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana. (Forked from the simple-tiktok tutorial stack; internal identifiers may still use the legacy `tiktok` name in Docker/DB config.)
+
+> **GitHub:** suggested repository name `kitex-flash-mall`. After renaming in **Settings → General → Repository name**, update the remote: `git remote set-url origin https://github.com/dpcdsg/kitex-flash-mall.git`
 
 # Feature
 
@@ -128,7 +130,7 @@ If you want a specific tutorial on how to use it, please visit: [deploy docs](./
 
 # Test
 
-you can drop `.postman/tiktok.openapi.json` to **postman** then start this project and test
+you can drop `.postman/flashmall.openapi.json` to **postman** then start this project and test
 
 # Visualization example
 
