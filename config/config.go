@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/cloudwego/kitex/pkg/klog"
-	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 
 	_ "github.com/spf13/viper/remote"
@@ -59,11 +58,9 @@ func Init(path string, service string) {
 
 	klog.Infof("all keys: %v\n", runtime_viper.AllKeys())
 
-	// 持续监听配置
-	runtime_viper.OnConfigChange(func(e fsnotify.Event) {
-		klog.Infof("config file changed: %v\n", e.String())
-	})
-	runtime_viper.WatchConfig()
+	// 注意：配置来自 etcd 远程（AddRemoteProvider），不能使用 WatchConfig()。
+	// WatchConfig 仅适用于本地文件，否则会反复报 Config File "config" Not Found。
+	// 若需热更新，应使用 etcd watch / 定时 ReadRemoteConfig，而非 viper.WatchConfig。
 }
 
 func configMapping(srv string) {

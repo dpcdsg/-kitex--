@@ -7,5 +7,6 @@ cluster.routing.allocation.disk.watermark.low: 92%
 cluster.routing.allocation.disk.watermark.high: 97%
 cluster.routing.allocation.disk.watermark.flood_stage: 99%
 
-# 单节点无法分配副本，默认 1 副本会一直 yellow；Kibana 迁移要求索引可用
-index.number_of_replicas: 0
+# ES 8+ 禁止在 elasticsearch.yml 中写 index.*（会直接导致进程退出、容器反复重启）。
+# 单节点需要 0 副本时：启动后用 API 或索引模板设置，例如：
+#   PUT _index_template/tiktok-logs { "index_patterns":["*"], "template":{"settings":{"number_of_replicas":0}} }
