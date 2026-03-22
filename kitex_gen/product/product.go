@@ -1663,8 +1663,9 @@ func (p *CreateProductRequest) String() string {
 }
 
 type CreateProductResponse struct {
-	Base    *BaseResp `thrift:"base,1" frugal:"1,default,BaseResp" json:"base"`
-	Product *Product  `thrift:"product,2" frugal:"2,default,Product" json:"product"`
+	Base     *BaseResp `thrift:"base,1" frugal:"1,default,BaseResp" json:"base"`
+	Product  *Product  `thrift:"product,2" frugal:"2,default,Product" json:"product"`
+	SellerId int64     `thrift:"seller_id,3" frugal:"3,default,i64" json:"seller_id"`
 }
 
 func NewCreateProductResponse() *CreateProductResponse {
@@ -1691,16 +1692,23 @@ func (p *CreateProductResponse) GetProduct() (v *Product) {
 	}
 	return p.Product
 }
+func (p *CreateProductResponse) GetSellerId() (v int64) {
+	return p.SellerId
+}
 func (p *CreateProductResponse) SetBase(val *BaseResp) {
 	p.Base = val
 }
 func (p *CreateProductResponse) SetProduct(val *Product) {
 	p.Product = val
 }
+func (p *CreateProductResponse) SetSellerId(val int64) {
+	p.SellerId = val
+}
 
 var fieldIDToName_CreateProductResponse = map[int16]string{
 	1: "base",
 	2: "product",
+	3: "seller_id",
 }
 
 func (p *CreateProductResponse) IsSetBase() bool {
@@ -1741,6 +1749,14 @@ func (p *CreateProductResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -1791,6 +1807,16 @@ func (p *CreateProductResponse) ReadField2(iprot thrift.TProtocol) error {
 	p.Product = _field
 	return nil
 }
+func (p *CreateProductResponse) ReadField3(iprot thrift.TProtocol) error {
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.SellerId = _field
+	return nil
+}
 
 func (p *CreateProductResponse) Write(oprot thrift.TProtocol) (err error) {
 
@@ -1805,6 +1831,10 @@ func (p *CreateProductResponse) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -1857,6 +1887,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *CreateProductResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("seller_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.SellerId); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
 func (p *CreateProductResponse) String() string {
@@ -2061,8 +2108,9 @@ func (p *GetProductRequest) String() string {
 }
 
 type GetProductResponse struct {
-	Base    *BaseResp `thrift:"base,1" frugal:"1,default,BaseResp" json:"base"`
-	Product *Product  `thrift:"product,2" frugal:"2,default,Product" json:"product"`
+	Base     *BaseResp `thrift:"base,1" frugal:"1,default,BaseResp" json:"base"`
+	Product  *Product  `thrift:"product,2" frugal:"2,default,Product" json:"product"`
+	SellerId int64     `thrift:"seller_id,3" frugal:"3,default,i64" json:"seller_id"`
 }
 
 func NewGetProductResponse() *GetProductResponse {
@@ -2089,16 +2137,23 @@ func (p *GetProductResponse) GetProduct() (v *Product) {
 	}
 	return p.Product
 }
+func (p *GetProductResponse) GetSellerId() (v int64) {
+	return p.SellerId
+}
 func (p *GetProductResponse) SetBase(val *BaseResp) {
 	p.Base = val
 }
 func (p *GetProductResponse) SetProduct(val *Product) {
 	p.Product = val
 }
+func (p *GetProductResponse) SetSellerId(val int64) {
+	p.SellerId = val
+}
 
 var fieldIDToName_GetProductResponse = map[int16]string{
 	1: "base",
 	2: "product",
+	3: "seller_id",
 }
 
 func (p *GetProductResponse) IsSetBase() bool {
@@ -2139,6 +2194,14 @@ func (p *GetProductResponse) Read(iprot thrift.TProtocol) (err error) {
 		case 2:
 			if fieldTypeId == thrift.STRUCT {
 				if err = p.ReadField2(iprot); err != nil {
+					goto ReadFieldError
+				}
+			} else if err = iprot.Skip(fieldTypeId); err != nil {
+				goto SkipFieldError
+			}
+		case 3:
+			if fieldTypeId == thrift.I64 {
+				if err = p.ReadField3(iprot); err != nil {
 					goto ReadFieldError
 				}
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
@@ -2189,6 +2252,16 @@ func (p *GetProductResponse) ReadField2(iprot thrift.TProtocol) error {
 	p.Product = _field
 	return nil
 }
+func (p *GetProductResponse) ReadField3(iprot thrift.TProtocol) error {
+	var _field int64
+	if v, err := iprot.ReadI64(); err != nil {
+		return err
+	} else {
+		_field = v
+	}
+	p.SellerId = _field
+	return nil
+}
 
 func (p *GetProductResponse) Write(oprot thrift.TProtocol) (err error) {
 
@@ -2203,6 +2276,10 @@ func (p *GetProductResponse) Write(oprot thrift.TProtocol) (err error) {
 		}
 		if err = p.writeField2(oprot); err != nil {
 			fieldId = 2
+			goto WriteFieldError
+		}
+		if err = p.writeField3(oprot); err != nil {
+			fieldId = 3
 			goto WriteFieldError
 		}
 	}
@@ -2255,6 +2332,23 @@ WriteFieldBeginError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
 WriteFieldEndError:
 	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
+}
+
+func (p *GetProductResponse) writeField3(oprot thrift.TProtocol) (err error) {
+	if err = oprot.WriteFieldBegin("seller_id", thrift.I64, 3); err != nil {
+		goto WriteFieldBeginError
+	}
+	if err := oprot.WriteI64(p.SellerId); err != nil {
+		return err
+	}
+	if err = oprot.WriteFieldEnd(); err != nil {
+		goto WriteFieldEndError
+	}
+	return nil
+WriteFieldBeginError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
+WriteFieldEndError:
+	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
 }
 
 func (p *GetProductResponse) String() string {
@@ -4720,6 +4814,8 @@ func (p *DeductStockResponse) String() string {
 
 type ProductService interface {
 	CreateProduct(ctx context.Context, req *CreateProductRequest) (r *CreateProductResponse, err error)
+
+	UpdateProduct(ctx context.Context, req *UpdateProductRequest) (r *UpdateProductResponse, err error)
 
 	GetProduct(ctx context.Context, req *GetProductRequest) (r *GetProductResponse, err error)
 

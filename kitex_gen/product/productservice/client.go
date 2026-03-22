@@ -11,6 +11,7 @@ import (
 
 type Client interface {
 	CreateProduct(ctx context.Context, req *product.CreateProductRequest, callOptions ...callopt.Option) (r *product.CreateProductResponse, err error)
+	UpdateProduct(ctx context.Context, req *product.UpdateProductRequest, callOptions ...callopt.Option) (r *product.UpdateProductResponse, err error)
 	GetProduct(ctx context.Context, req *product.GetProductRequest, callOptions ...callopt.Option) (r *product.GetProductResponse, err error)
 	ListProducts(ctx context.Context, req *product.ListProductsRequest, callOptions ...callopt.Option) (r *product.ListProductsResponse, err error)
 	CreateSeckill(ctx context.Context, req *product.CreateSeckillRequest, callOptions ...callopt.Option) (r *product.CreateSeckillResponse, err error)
@@ -48,6 +49,11 @@ type kProductServiceClient struct {
 func (p *kProductServiceClient) CreateProduct(ctx context.Context, req *product.CreateProductRequest, callOptions ...callopt.Option) (r *product.CreateProductResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.CreateProduct(ctx, req)
+}
+
+func (p *kProductServiceClient) UpdateProduct(ctx context.Context, req *product.UpdateProductRequest, callOptions ...callopt.Option) (r *product.UpdateProductResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UpdateProduct(ctx, req)
 }
 
 func (p *kProductServiceClient) GetProduct(ctx context.Context, req *product.GetProductRequest, callOptions ...callopt.Option) (r *product.GetProductResponse, err error) {
