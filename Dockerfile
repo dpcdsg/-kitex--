@@ -1,4 +1,5 @@
-FROM golang:1.20 AS builder
+# 基础镜像经轩辕拉取（需已 docker login docker.xuanyuan.run）
+FROM docker.xuanyuan.run/library/golang:1.20 AS builder
 
 ENV TZ Asia/Shanghai
 ENV CGO_ENABLED 0
@@ -14,7 +15,7 @@ RUN go mod tidy
 RUN make build-all
 
 
-FROM alpine
+FROM docker.xuanyuan.run/library/alpine:latest
 
 RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
 ENV TZ Asia/Shanghai

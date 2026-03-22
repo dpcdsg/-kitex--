@@ -1,0 +1,118 @@
+# 在基础设施已启动后，拉起四个业务容器（Windows / macOS 的 Docker Desktop 也可用）。
+# 用法（在项目根目录）:
+#   docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d
+# 首次使用请先构建镜像: docker build -t tiktok .
+#
+# 说明：会额外把 config/config.docker.yaml 挂到 etcd 容器的 /config/config.yaml，
+# 以便 etcd-monitor 将「容器网络版」配置写入 etcd；业务容器通过 ETCD_ADDR=etcd:2379 连接。
+# 若 etcd 已在运行，请执行: docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d etcd
+# 以触发配置重新上传，然后: docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d
+
+services:
+  # 必须写全量 volumes，否则会覆盖主 compose 里 etcd 的 ./docker、./data/etcd 挂载
+  etcd:
+    volumes:
+      - ./docker:/script
+      - ./config:/config
+      - ./data/etcd:/etcd-data
+      - ./config/config.docker.yaml:/config/config.yaml:ro
+
+  tiktok-api:
+    image: tiktok:latest
+    container_name: tiktok-api
+    restart: unless-stopped
+    environment:
+      - service=api
+      - ETCD_ADDR=etcd:2379
+    networks:
+      - tiktok
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    ports:
+      - "10001:10001"
+
+  tiktok-user:
+    image: tiktok:latest
+    container_name: tiktok-user
+    restart: unless-stopped
+    environment:
+      - service=user
+      - ETCD_ADDR=etcd:2379
+    networks:
+      - tiktok
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    ports:
+      - "10002:10002"
+
+  tiktok-product:
+    image: tiktok:latest
+    container_name: tiktok-product
+    restart: unless-stopped
+    environment:
+      - service=product
+      - ETCD_ADDR=etcd:2379
+    networks:
+      - tiktok
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    ports:
+      - "10003:10003"
+
+  tiktok-order:
+    image: tiktok:latest
+    container_name: tiktok-order
+    restart: unless-stopped
+    environment:
+      - service=order
+      - ETCD_ADDR=etcd:2379
+    networks:
+      - tiktok
+    depends_on:
+      etcd:
+        condition: service_started
+      mysql:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      elasticsearch:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    ports:
+      - "10004:10004"

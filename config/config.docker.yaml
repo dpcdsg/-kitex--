@@ -1,12 +1,9 @@
-# NOTICE: copy and rename this file to config.yaml
-# NOTICE: some cofig need to complete
+# 在 Docker Compose 的 tiktok 网络内运行 api/user/product/order 时使用。
+# 通过 docker-compose.apps.yml 挂载为 etcd 的 /config/config.yaml 并写入 etcd，
+# 与宿主机直连（127.0.0.1:3307 等）的 config.yaml 区分开。
 
+etcd-addr: etcd:2379
 
-# nodes only need to set this item
-# Use local etcd when running infra via docker-compose.
-etcd-addr: 127.0.0.1:2379
-
-# etcd server need to complete these items
 server:
   jwt-secret: MTAxNTkwMTg1Mw==
   version: "1.0"
@@ -17,13 +14,12 @@ snowflake:
   datancenter-id: 0
 
 mysql:
-  addr: 127.0.0.1:3307
+  addr: mysql:3306
   database: tiktok
   username: tiktok
   password: tiktok
   charset: utf8mb4
 
-# you need to complete this config to use video service
 oss:
   endpoint:
   accessKey-id:
@@ -32,46 +28,45 @@ oss:
   main-directory: tiktok
 
 elasticsearch:
-  addr: 127.0.0.1:9200
-  host: 127.0.0.1
+  addr: elasticsearch:9200
+  host: elasticsearch
 
 etcd:
-  addr: 127.0.0.1:2379
+  addr: etcd:2379
 
 rabbitmq:
-  addr: 127.0.0.1:5672
+  addr: rabiitmq:5672
   username: tiktok
   password: tiktok
 
 redis:
-  addr: 127.0.0.1:6379
+  addr: redis:6379
   password: tiktok
 
 jaeger:
-  addr: 127.0.0.1:6831
+  addr: jaeger:6831
 
-# if you deploy in different machines, remember to modify IP.
 services:
   api:
     name: api
     load-balance: false
     addr:
-      - 127.0.0.1:10001
+      - tiktok-api:10001
   user:
     name: user
     load-balance: false
     addr:
-      - 127.0.0.1:10002
+      - tiktok-user:10002
   product:
     name: product
     load-balance: false
     addr:
-      - 127.0.0.1:10003
+      - tiktok-product:10003
   order:
     name: order
     load-balance: false
     addr:
-      - 127.0.0.1:10004
+      - tiktok-order:10004
   interaction:
     name: interaction
     load-balance: false

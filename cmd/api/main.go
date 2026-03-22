@@ -111,10 +111,11 @@ func initSentinel() {
 	if err != nil {
 		hlog.Fatalf("Unexpected error: %+v", err)
 	}
+	// Threshold 为每秒允许的请求数（QPS）。0 会被视为几乎全拒，本地/联调请设为合理上限。
 	_, err = flow.LoadRules([]*flow.Rule{
 		{
 			Resource:               "api",
-			Threshold:              0.0,
+			Threshold:              10000,
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Reject,
 			StatIntervalInMs:       1000,

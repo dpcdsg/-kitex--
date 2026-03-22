@@ -19,6 +19,9 @@ function read_key() {
     done < "$1"
 }
 
-export ETCD_ADDR=$(read_key $CONFIG_PATH "etcd-addr")
+# 若已在环境中设置 ETCD_ADDR（例如 compose 中指向 etcd:2379），则不再覆盖
+if [ -z "$ETCD_ADDR" ]; then
+  export ETCD_ADDR=$(read_key $CONFIG_PATH "etcd-addr")
+fi
 
 sh ./output/${service}/bootstrap.sh

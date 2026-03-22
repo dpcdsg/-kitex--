@@ -44,7 +44,7 @@ build-all:
 
 .PHONY: docker
 docker:
-	docker build -t seckill .
+	docker build -t tiktok .
 
 .PHONY: gen-product
 gen-product:

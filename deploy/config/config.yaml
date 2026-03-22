@@ -1,8 +1,9 @@
 # NOTICE: copy and rename this file to config.yaml
 # NOTICE: some cofig need to complete
 
-# nodes ony need to set this item
-etcd-addr: 172.16.232.8:2379
+# nodes only need to set this item
+# Use local etcd when running infra via docker-compose.
+etcd-addr: 127.0.0.1:2379
 
 # etcd server need to complete these items
 server:
@@ -15,7 +16,7 @@ snowflake:
   datancenter-id: 0
 
 mysql:
-  addr: 127.0.0.1:3306
+  addr: 127.0.0.1:3307
   database: tiktok
   username: tiktok
   password: tiktok
@@ -57,13 +58,13 @@ services:
     load-balance: false
     addr:
       - 127.0.0.1:10002
-  chat:
-    name: chat
+  product:
+    name: product
     load-balance: false
     addr:
       - 127.0.0.1:10003
-  follow:
-    name: follow
+  order:
+    name: order
     load-balance: false
     addr:
       - 127.0.0.1:10004

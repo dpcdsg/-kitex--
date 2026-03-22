@@ -6,7 +6,8 @@ DIR=$(cd $(dirname $0); pwd)
 
 SERVICE_TO_START=${1:-all} # default start all
 
-SERVICES=(api user chat follow interaction video)
+# NOTE: this repo only has these 4 services: api/user/product/order
+SERVICES=(api user product order)
 
 remove_container() {
     container_status=$(docker inspect -f '{{.State.Status}}' "$1")

@@ -7,3 +7,5 @@ docker-compose.ci.yml
 README.md
 /test
 /.github
+# 本地 Docker 数据卷（含 mysql.sock 等，不能作为构建上下文）
+/data

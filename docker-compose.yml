@@ -1,3 +1,5 @@
+# 镜像经轩辕 docker.xuanyuan.run 拉取（需先: docker login docker.xuanyuan.run）
+# etcd 用官方 quay.io（轩辕无此路径）；node-exporter 用 Hub 的 prom/node-exporter
 version: '3.7'
 
 networks:
@@ -8,7 +10,8 @@ services:
 
     mysql:
         container_name: mysql
-        image: mysql:latest
+        # 勿用 latest(9.x)：9.x 不支持本 command，会 unknown variable 并反复重启；改数据目录后需重建容器
+        image: docker.xuanyuan.run/library/mysql:8.0
         restart: always
         command: --default-authentication-plugin=mysql_native_password
         environment:
@@ -20,28 +23,28 @@ services:
         volumes:
             - ./config/sql:/docker-entrypoint-initdb.d/
             - ./data/mysql:/var/lib/mysql
+        # 若本机已有 MySQL 占用 3306，改为左侧端口 3307（与 config 中 mysql.addr 一致）
         ports:
-            - "3306:3306"
+            - "3307:3306"
         networks:
             - tiktok
 
     redis:
         container_name: redis
-        image: "redis:latest"
+        image: docker.xuanyuan.run/library/redis:latest
         restart: always
+        # 官方镜像需显式 requirepass，与 config 中 redis.password 一致
+        command: ["redis-server", "--appendonly", "yes", "--requirepass", "tiktok"]
         ports:
             - 6379:6379
         volumes:
             - ./data/redis:/data
-        environment:
-            - REDIS_PASSWORD=tiktok
-            - ALLOW_EMPTY_PASSWORD=no
         networks:
                 - tiktok
 
     rabbitmq:
         container_name: rabiitmq
-        image: "rabbitmq:latest"
+        image: docker.xuanyuan.run/library/rabbitmq:latest
         ports:
             - 5672:5672
             - 15672:15672
@@ -55,7 +58,7 @@ services:
 
     etcd:
         container_name: etcd
-        image: "quay.io/coreos/etcd:v3.5.5"
+        image: quay.io/coreos/etcd:v3.5.5
         restart: always
         ports:
             - 2379:2379
@@ -75,7 +78,7 @@ services:
 
     etcd-keeper:
         hostname: etcdkeeper
-        image: evildecay/etcdkeeper
+        image: docker.xuanyuan.run/evildecay/etcdkeeper:latest
         environment:
             - ETCD_HOSTS=http://etcd:2379
             - SW_STORAGE_ETCD_CLUSTER_NODES=etcd:2379
@@ -83,15 +86,16 @@ services:
             - HOSTNAME=etcd-keeper
         links:
             - etcd
+        # Windows 上 8099 常被 Hyper-V 等保留导致 bind 失败，改用 18099
         ports:
-            - 8099:8080
+            - 18099:8080
         depends_on:
             - etcd
         networks:
             - tiktok
 
     elasticsearch:
-        image: elasticsearch:8.4.2
+        image: docker.xuanyuan.run/library/elasticsearch:8.4.2
         container_name: elasticsearch
         environment:
             bootstrap.memory_lock: "true"
@@ -120,7 +124,7 @@ services:
             - tiktok
 
     kibana:
-        image: kibana:8.4.2
+        image: docker.xuanyuan.run/library/kibana:8.4.2
         container_name: kibana
         environment:
             - I18N_LOCALE=zh-CN
@@ -140,7 +144,7 @@ services:
 
     jaeger:
         container_name: jaeger
-        image: "jaegertracing/all-in-one:latest"
+        image: docker.xuanyuan.run/jaegertracing/all-in-one:latest
         restart: always
         ports:
             - 16686:16686
@@ -152,7 +156,7 @@ services:
             - tiktok
 
     prometheus:
-        image: prom/prometheus
+        image: docker.xuanyuan.run/prom/prometheus:latest
         container_name: prometheus
         hostname: prometheus
         restart: always
@@ -164,7 +168,7 @@ services:
             - tiktok
 
     grafana:
-        image: grafana/grafana
+        image: docker.xuanyuan.run/grafana/grafana:latest
         container_name: grafana
         restart: always
         ports:
@@ -175,7 +179,7 @@ services:
             - tiktok
 
     alertmanager:  #预警模块
-        image: prom/alertmanager
+        image: docker.xuanyuan.run/prom/alertmanager:latest
         container_name: alertmanager
         restart: always
         ports:
@@ -184,7 +188,7 @@ services:
             - tiktok
 
     node-exporter:
-        image: quay.io/prometheus/node-exporter
+        image: docker.xuanyuan.run/prom/node-exporter:latest
         container_name: node-exporter
         restart: always
         ports:
@@ -193,7 +197,7 @@ services:
             - tiktok
 
     cadvisor:
-        image: google/cadvisor:latest
+        image: docker.xuanyuan.run/google/cadvisor:latest
         container_name: cadvisor
         restart: always
         platform: linux/amd64
@@ -208,7 +212,7 @@ services:
             - tiktok
 
     redis-exporter:
-        image: oliver006/redis_exporter
+        image: docker.xuanyuan.run/oliver006/redis_exporter:latest
         container_name: redis-exporter
         restart: always
         ports:
@@ -219,7 +223,7 @@ services:
             - tiktok
 
     mysql_xporter:
-        image: prom/mysqld-exporter
+        image: docker.xuanyuan.run/prom/mysqld-exporter:latest
         container_name: mysql-exporter
         restart: always
         ports:
