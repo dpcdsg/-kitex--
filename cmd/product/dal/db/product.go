@@ -57,3 +57,20 @@ func ListProducts(ctx context.Context, page, size int64, category string) ([]*Pr
 
 	return products, total, nil
 }
+
+func UpdateProduct(ctx context.Context, p *Product) (*Product, error) {
+	updates := map[string]interface{}{
+		"name":        p.Name,
+		"description": p.Description,
+		"price":       p.Price,
+		"stock":       p.Stock,
+		"image_url":   p.ImageUrl,
+		"category":    p.Category,
+	}
+
+	if err := DB.WithContext(ctx).Model(&Product{}).Where("id = ?", p.Id).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	return GetProductByID(ctx, p.Id)
+}

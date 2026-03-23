@@ -30,6 +30,25 @@ func (s *ProductServiceImpl) CreateProduct(ctx context.Context, req *product.Cre
 	return
 }
 
+func (s *ProductServiceImpl) UpdateProduct(ctx context.Context, req *product.UpdateProductRequest) (resp *product.UpdateProductResponse, err error) {
+	resp = new(product.UpdateProductResponse)
+
+	if req.ProductId <= 0 || len(req.Name) == 0 || req.Price <= 0 || req.Stock < 0 {
+		resp.Base = pack.BuildBaseResp(errno.ParamError)
+		return resp, nil
+	}
+
+	p, err := service.NewProductService(ctx).UpdateProduct(req)
+	if err != nil {
+		resp.Base = pack.BuildBaseResp(err)
+		return resp, nil
+	}
+
+	resp.Base = pack.BuildBaseResp(nil)
+	resp.Product = pack.Product(p)
+	return
+}
+
 func (s *ProductServiceImpl) GetProduct(ctx context.Context, req *product.GetProductRequest) (resp *product.GetProductResponse, err error) {
 	resp = new(product.GetProductResponse)
 

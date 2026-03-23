@@ -25,7 +25,7 @@ func ProductCreate(ctx context.Context, c *app.RequestContext) {
 		Description: req.Description,
 		Price:       req.Price,
 		Stock:       req.Stock,
-		ImageUrl:    req.ImageUrl,
+		ImageUrl:    req.GetImageURL(),
 		Category:    req.Category,
 	})
 	if err != nil {
@@ -172,5 +172,35 @@ func SeckillDetail(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(api.SeckillDetailResponse)
 	resp.Activity = pack.SeckillActivity(activity)
+	pack.SendResponse(c, resp)
+}
+
+// ProductUpdate .
+// @router /seckill/product/update/ [POST]
+func ProductUpdate(ctx context.Context, c *app.RequestContext) {
+	var req api.ProductUpdateRequest
+	if err := c.BindAndValidate(&req); err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	p, err := rpc.ProductUpdate(ctx, &product.UpdateProductRequest{
+		Token:       req.GetToken(),
+		ProductId:   req.GetProductID(),
+		Name:        req.GetName(),
+		Description: req.GetDescription(),
+		Price:       req.GetPrice(),
+		Stock:       req.GetStock(),
+		ImageUrl:    req.GetImageURL(),
+		Category:    req.GetCategory(),
+	})
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	resp := new(api.ProductUpdateResponse)
+	resp.Product = pack.Product(p)
+
 	pack.SendResponse(c, resp)
 }

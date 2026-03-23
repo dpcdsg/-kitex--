@@ -15,6 +15,16 @@ export function LoginPage() {
     e.preventDefault();
     setErr(null);
     setLoading(true);
+
+    // 前端联调 mock：用于在后端不可用时验证登录态页面展示效果。
+    // 约定：用户名 dpc，密码 123 则直接写入本地登录态（token 为任意非空字符串）。
+    if (username === 'dpc' && password === '123') {
+      setSession(10001, 'mock-token-dpc-123', 'dpc');
+      nav('/seller');
+      setLoading(false);
+      return;
+    }
+
     try {
       const r = await userLogin(username, password);
       let displayName: string | null = null;
