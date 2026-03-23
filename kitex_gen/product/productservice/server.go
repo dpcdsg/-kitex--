@@ -6,6 +6,7 @@ import (
 	product "github.com/ozline/tiktok/kitex_gen/product"
 )
 
+// NewServer creates a server.Server with the given handler and options.
 func NewServer(handler product.ProductService, opts ...server.Option) server.Server {
 	var options []server.Option
 	options = append(options, opts...)

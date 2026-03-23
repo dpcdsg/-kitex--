@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { productCreate, productList, productUpdate, seckillCreate, seckillList } from '@/api/seckill';
+import { productCreate, productList, productUpdate, seckillCreate, seckillList, seckillUpdate } from '@/api/seckill';
 import { useAuth } from '@/context/AuthContext';
 import type { Product, SeckillActivity } from '@/api/types';
+
+const MOCK_PRODUCT_IMAGE_URL = 'https://www.leagueoflegends.com/zh-tw/champions/katarina/';
 
 export function SellerPage() {
   const { token, userId } = useAuth();
@@ -20,7 +22,7 @@ export function SellerPage() {
         description: '用于验证前端界面的演示商品。',
         price: 19900,
         stock: 20,
-        image_url: '',
+        image_url: MOCK_PRODUCT_IMAGE_URL,
         category: '数码',
       },
       {
@@ -29,7 +31,7 @@ export function SellerPage() {
         description: '当后端不可用或无数据时，这些数据会显示。',
         price: 9900,
         stock: 80,
-        image_url: '',
+        image_url: MOCK_PRODUCT_IMAGE_URL,
         category: '家居',
       },
     ],
@@ -207,7 +209,7 @@ export function SellerPage() {
   const [pDesc, setPDesc] = useState('本地陶宝演示');
   const [pPrice, setPPrice] = useState('9900');
   const [pStock, setPStock] = useState('100');
-  const [pImg, setPImg] = useState('');
+  const [pImg, setPImg] = useState(MOCK_PRODUCT_IMAGE_URL);
   const [pCat, setPCat] = useState('数码');
 
   const [sProductId, setSProductId] = useState('');
@@ -215,6 +217,17 @@ export function SellerPage() {
   const [sStock, setSStock] = useState('50');
   const [sStart, setSStart] = useState('');
   const [sEnd, setSEnd] = useState('');
+
+  const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
+  const editingActivity = useMemo(
+    () => activities.find((a) => a.id === editingActivityId) ?? null,
+    [activities, editingActivityId],
+  );
+  const [aProductId, setAProductId] = useState('');
+  const [aPrice, setAPrice] = useState('');
+  const [aStock, setAStock] = useState('');
+  const [aStart, setAStart] = useState('');
+  const [aEnd, setAEnd] = useState('');
 
   async function onCreateProduct(e: React.FormEvent) {
     e.preventDefault();
@@ -283,6 +296,7 @@ export function SellerPage() {
         end_time: end,
       });
       setOk(`秒杀活动创建成功，活动 ID：${r.activity.id}`);
+      setActivities((prev) => [r.activity, ...prev.filter((x) => x.id !== r.activity.id)]);
       setShowCreateSeckillModal(false);
     } catch (e) {
       setErr(e instanceof Error ? e.message : '创建失败');
@@ -352,8 +366,68 @@ export function SellerPage() {
     }
   }
 
+  function toLocalInputValue(raw: string): string {
+    if (!raw) return '';
+    const normalized = raw.includes('T') ? raw : raw.replace(' ', 'T');
+    const d = new Date(normalized);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toISOString().slice(0, 16);
+  }
+
+  function startEditActivity(a: SeckillActivity) {
+    setEditingActivityId(a.id);
+    setAProductId(String(a.product_id));
+    setAPrice(String(a.seckill_price));
+    setAStock(String(a.total_stock));
+    setAStart(toLocalInputValue(a.start_time));
+    setAEnd(toLocalInputValue(a.end_time));
+    setErr(null);
+    setOk(null);
+  }
+
+  function cancelEditActivity() {
+    setEditingActivityId(null);
+  }
+
+  async function onSaveActivityEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingActivity || !token) return;
+    setErr(null);
+    setOk(null);
+
+    const productId = parseInt(aProductId, 10);
+    const seckillPrice = parseInt(aPrice, 10);
+    const totalStock = parseInt(aStock, 10);
+    if (Number.isNaN(productId) || Number.isNaN(seckillPrice) || Number.isNaN(totalStock)) {
+      setErr('活动参数必须为有效数字');
+      return;
+    }
+    if (!aStart || !aEnd) {
+      setErr('请填写活动开始和结束时间');
+      return;
+    }
+
+    const startISO = new Date(aStart).toISOString();
+    const endISO = new Date(aEnd).toISOString();
+    try {
+      const r = await seckillUpdate(token, {
+        activity_id: editingActivity.id,
+        product_id: productId,
+        seckill_price: seckillPrice,
+        total_stock: totalStock,
+        start_time: startISO,
+        end_time: endISO,
+      });
+      setActivities((prev) => prev.map((x) => (x.id === r.activity.id ? r.activity : x)));
+      setOk('活动修改成功');
+      cancelEditActivity();
+    } catch (ex) {
+      setErr(ex instanceof Error ? ex.message : '活动修改失败');
+    }
+  }
+
   return (
-    <div className="container" style={{ maxWidth: 560 }}>
+    <div className="container" style={{ maxWidth: 1120 }}>
       <h1 style={{ fontSize: '1.35rem' }}>卖家中心</h1>
       <p className="muted">创建商品与秒杀活动，供首页展示与下单联调。</p>
       {!canEdit && <p className="muted">未登录时也会展示模拟商品，用于验证页面效果；修改功能将被禁用。</p>}
@@ -557,9 +631,37 @@ export function SellerPage() {
         {products.length === 0 ? (
           <p className="muted">暂无商品</p>
         ) : (
-          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
             {products.map((p) => (
-              <div key={p.id} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+              <div
+                key={p.id}
+                style={{
+                  border: '1px solid #eee',
+                  borderRadius: 8,
+                  padding: 12,
+                  flex: '1 1 calc(50% - 12px)',
+                  minWidth: 300,
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    aspectRatio: '16 / 9',
+                    background: '#fafafa',
+                    borderRadius: 6,
+                    overflow: 'hidden',
+                    marginBottom: 10,
+                  }}
+                >
+                  <img
+                    src={p.image_url || MOCK_PRODUCT_IMAGE_URL}
+                    alt={p.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = MOCK_PRODUCT_IMAGE_URL;
+                    }}
+                  />
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                   <div>
                     <div style={{ fontWeight: 700 }}>
@@ -573,7 +675,7 @@ export function SellerPage() {
                     <button
                       type="button"
                       className="btn-primary"
-              disabled={!canEditProducts}
+                      disabled={!canEditProducts}
                       onClick={() => startEdit(p)}
                     >
                       修改
@@ -596,9 +698,18 @@ export function SellerPage() {
         {activities.length === 0 ? (
           <p className="muted">暂无秒杀活动</p>
         ) : (
-          <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
             {activities.map((a) => (
-              <div key={a.id} style={{ border: '1px solid #eee', borderRadius: 8, padding: 12 }}>
+              <div
+                key={a.id}
+                style={{
+                  border: '1px solid #eee',
+                  borderRadius: 8,
+                  padding: 12,
+                  flex: '1 1 calc(50% - 12px)',
+                  minWidth: 320,
+                }}
+              >
                 <div style={{ fontWeight: 700 }}>
                   活动 ID：{a.id} · 商品：{a.product_name}（{a.product_id}）
                 </div>
@@ -608,6 +719,11 @@ export function SellerPage() {
                 <div className="muted" style={{ marginTop: 4 }}>
                   {a.start_time} ~ {a.end_time}
                 </div>
+                <div style={{ marginTop: 10 }}>
+                  <button type="button" className="btn-primary" disabled={!canEdit} onClick={() => startEditActivity(a)}>
+                    修改活动
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -615,43 +731,135 @@ export function SellerPage() {
       </section>
 
       {editingProduct && (
-        <section className="card" style={{ padding: 20, marginTop: 16 }}>
-          <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>修改商品</h2>
-          <form onSubmit={onSaveEdit}>
-            <div className="form-row">
-              <label>名称</label>
-              <input value={eName} onChange={(e) => setEName(e.target.value)} required />
-            </div>
-            <div className="form-row">
-              <label>描述</label>
-              <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} rows={2} />
-            </div>
-            <div className="form-row">
-              <label>价格（分）</label>
-              <input value={ePrice} onChange={(e) => setEPrice(e.target.value)} required />
-            </div>
-            <div className="form-row">
-              <label>库存</label>
-              <input value={eStock} onChange={(e) => setEStock(e.target.value)} required />
-            </div>
-            <div className="form-row">
-              <label>图片 URL（可空）</label>
-              <input value={eImg} onChange={(e) => setEImg(e.target.value)} placeholder="https://..." />
-            </div>
-            <div className="form-row">
-              <label>分类</label>
-              <input value={eCat} onChange={(e) => setECat(e.target.value)} />
-            </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-              <button type="submit" className="btn-primary" disabled={!canEditProducts}>
-                保存修改
-              </button>
-              <button type="button" className="btn" onClick={cancelEdit}>
-                取消
-              </button>
-            </div>
-          </form>
-        </section>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={cancelEdit}
+        >
+          <div className="card" style={{ width: 'min(720px, 92vw)', padding: 20 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>修改商品</h2>
+            <form onSubmit={onSaveEdit}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: 8, width: 140 }}>名称</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={eName} onChange={(e) => setEName(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>描述</td>
+                    <td style={{ padding: 8 }}>
+                      <textarea value={eDesc} onChange={(e) => setEDesc(e.target.value)} rows={2} />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>价格（分）</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={ePrice} onChange={(e) => setEPrice(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>库存</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={eStock} onChange={(e) => setEStock(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>图片 URL（可空）</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={eImg} onChange={(e) => setEImg(e.target.value)} placeholder="https://..." />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>分类</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={eCat} onChange={(e) => setECat(e.target.value)} />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                <button type="submit" className="btn-primary" disabled={!canEditProducts}>
+                  保存修改
+                </button>
+                <button type="button" className="btn" onClick={cancelEdit}>
+                  关闭
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingActivity && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={cancelEditActivity}
+        >
+          <div className="card" style={{ width: 'min(720px, 92vw)', padding: 20 }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>修改秒杀活动</h2>
+            <form onSubmit={onSaveActivityEdit}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: 8, width: 140 }}>商品 ID</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={aProductId} onChange={(e) => setAProductId(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>秒杀价（分）</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={aPrice} onChange={(e) => setAPrice(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>总库存</td>
+                    <td style={{ padding: 8 }}>
+                      <input value={aStock} onChange={(e) => setAStock(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>开始时间</td>
+                    <td style={{ padding: 8 }}>
+                      <input type="datetime-local" value={aStart} onChange={(e) => setAStart(e.target.value)} required />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: 8 }}>结束时间</td>
+                    <td style={{ padding: 8 }}>
+                      <input type="datetime-local" value={aEnd} onChange={(e) => setAEnd(e.target.value)} required />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                <button type="submit" className="btn-primary" disabled={!canEdit}>
+                  保存活动修改
+                </button>
+                <button type="button" className="btn" onClick={cancelEditActivity}>
+                  关闭
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <p style={{ marginTop: 16 }}>

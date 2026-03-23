@@ -6,6 +6,7 @@ import type { Product, SeckillActivity } from '@/api/types';
 import { fenToYuan } from '@/util/money';
 
 const PLACEHOLDER = 'https://via.placeholder.com/200x200/f5f5f5/ff5000?text=陶宝';
+const MOCK_PRODUCT_IMAGE_URL = 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Katarina_0.jpg';
 
 export function HomePage() {
   const { token, userId } = useAuth();
@@ -20,7 +21,7 @@ export function HomePage() {
       description: '用于验证前端展示逻辑的模拟商品。',
       price: 19900,
       stock: 20,
-      image_url: '',
+      image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '数码',
     },
     {
@@ -29,7 +30,7 @@ export function HomePage() {
       description: '当后端不可用时，首页仍可展示模拟数据。',
       price: 9900,
       stock: 80,
-      image_url: '',
+      image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '家居',
     },
   ];

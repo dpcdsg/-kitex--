@@ -3,6 +3,7 @@ import type { Order, Product, SeckillActivity } from './types';
 
 const MOCK_DPC_USER_ID = 10001;
 const MOCK_DPC_TOKEN = 'mock-token-dpc-123';
+const MOCK_PRODUCT_IMAGE_URL = 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Katarina_0.jpg';
 
 const LS_OWNED_PRODUCTS = `taobao_demo_owned_products_${MOCK_DPC_USER_ID}`;
 const LS_SECKILL_ACTIVITIES = `taobao_demo_seckill_activities_${MOCK_DPC_USER_ID}`;
@@ -35,7 +36,7 @@ function ensureSeed() {
       description: '用于验证前端界面的演示商品。',
       price: 19900,
       stock: 20,
-      image_url: '',
+      image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '数码',
       seller_id: MOCK_DPC_USER_ID,
     },
@@ -45,7 +46,7 @@ function ensureSeed() {
       description: '当后端不可用或无数据时，这些数据会显示。',
       price: 9900,
       stock: 80,
-      image_url: '',
+      image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '家居',
       seller_id: MOCK_DPC_USER_ID,
     },
@@ -101,8 +102,16 @@ function ensureSeed() {
     },
   ];
 
-  if (!localStorage.getItem(LS_OWNED_PRODUCTS)) {
+  const existingProducts = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
+  if (existingProducts.length === 0) {
     writeJson(LS_OWNED_PRODUCTS, seededProducts);
+  } else {
+    // Backfill older mock records that may not have image_url.
+    const normalized = existingProducts.map((p) => ({
+      ...p,
+      image_url: p.image_url || MOCK_PRODUCT_IMAGE_URL,
+    }));
+    writeJson(LS_OWNED_PRODUCTS, normalized);
   }
   if (!localStorage.getItem(LS_SECKILL_ACTIVITIES)) {
     writeJson(LS_SECKILL_ACTIVITIES, seededActivities);
@@ -329,6 +338,56 @@ export async function seckillCreate(
   }
   return apiPostJson<{ activity: SeckillActivity }>(
     '/activity/create/',
+    { token, ...body },
+    token,
+  );
+}
+
+export async function seckillUpdate(
+  token: string,
+  body: {
+    activity_id: number;
+    product_id: number;
+    seckill_price: number;
+    total_stock: number;
+    start_time: string;
+    end_time: string;
+  },
+) {
+  if (isMockDpcToken(token)) {
+    ensureSeed();
+    const products = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
+    const product = products.find((p) => p.id === body.product_id);
+    const activities = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
+    const idx = activities.findIndex((a) => a.id === body.activity_id);
+    if (idx < 0) throw new Error('秒杀活动不存在');
+
+    const old = activities[idx];
+    const sold = Math.max(0, old.total_stock - old.available_stock);
+    if (body.total_stock < sold) {
+      throw new Error('活动总库存不能小于已售数量');
+    }
+    const available = body.total_stock - sold;
+
+    const updated: SeckillActivity = {
+      ...old,
+      product_id: body.product_id,
+      product_name: product?.name ?? old.product_name,
+      seckill_price: body.seckill_price,
+      total_stock: body.total_stock,
+      available_stock: available,
+      start_time: body.start_time,
+      end_time: body.end_time,
+      status: available <= 0 ? 2 : old.status,
+    };
+    const next = activities.slice();
+    next[idx] = updated;
+    writeJson(LS_SECKILL_ACTIVITIES, next);
+    return { activity: updated };
+  }
+
+  return apiPostJson<{ activity: SeckillActivity }>(
+    '/activity/update/',
     { token, ...body },
     token,
   );

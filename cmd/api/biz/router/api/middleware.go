@@ -57,6 +57,16 @@ func _seckilllistMw() []app.HandlerFunc {
 	return nil
 }
 
+func _update0Mw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
+func _seckillupdateMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}
+
 func _orderMw() []app.HandlerFunc {
 	// your code...
 	return nil

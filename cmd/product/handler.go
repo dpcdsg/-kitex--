@@ -107,6 +107,25 @@ func (s *ProductServiceImpl) CreateSeckill(ctx context.Context, req *product.Cre
 	return
 }
 
+func (s *ProductServiceImpl) UpdateSeckill(ctx context.Context, req *product.UpdateSeckillRequest) (resp *product.UpdateSeckillResponse, err error) {
+	resp = new(product.UpdateSeckillResponse)
+
+	if req.ActivityId <= 0 || req.ProductId <= 0 || req.SeckillPrice <= 0 || req.TotalStock <= 0 || len(req.StartTime) == 0 || len(req.EndTime) == 0 {
+		resp.Base = pack.BuildBaseResp(errno.ParamError)
+		return resp, nil
+	}
+
+	activity, err := service.NewProductService(ctx).UpdateSeckill(req)
+	if err != nil {
+		resp.Base = pack.BuildBaseResp(err)
+		return resp, nil
+	}
+
+	resp.Base = pack.BuildBaseResp(nil)
+	resp.Activity = activity
+	return
+}
+
 func (s *ProductServiceImpl) GetSeckill(ctx context.Context, req *product.GetSeckillRequest) (resp *product.GetSeckillResponse, err error) {
 	resp = new(product.GetSeckillResponse)
 

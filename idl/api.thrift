@@ -158,6 +158,22 @@ struct SeckillCreateResponse {
     3: required SeckillActivity activity,
 }
 
+struct SeckillUpdateRequest {
+    1: required string token,
+    2: required i64 activity_id,
+    3: required i64 product_id,
+    4: required i64 seckill_price,
+    5: required i64 total_stock,
+    6: required string start_time,
+    7: required string end_time,
+}
+
+struct SeckillUpdateResponse {
+    1: required i64 status_code = 0,
+    2: optional string status_msg,
+    3: required SeckillActivity activity,
+}
+
 struct SeckillListRequest {
     1: optional string token,
     2: optional i64 status,
@@ -256,6 +272,7 @@ service ProductService {
     ProductListResponse ProductList(1: ProductListRequest req) (api.get="/seckill/product/list/")
 
     SeckillCreateResponse SeckillCreate(1: SeckillCreateRequest req) (api.post="/seckill/activity/create/")
+    SeckillUpdateResponse SeckillUpdate(1: SeckillUpdateRequest req) (api.post="/seckill/activity/update/")
     SeckillListResponse SeckillList(1: SeckillListRequest req) (api.get="/seckill/activity/list/")
     SeckillDetailResponse SeckillDetail(1: SeckillDetailRequest req) (api.get="/seckill/activity/detail/")
 }

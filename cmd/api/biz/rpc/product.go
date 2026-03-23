@@ -98,6 +98,17 @@ func SeckillCreate(ctx context.Context, req *product.CreateSeckillRequest) (*pro
 	return resp.Activity, nil
 }
 
+func SeckillUpdate(ctx context.Context, req *product.UpdateSeckillRequest) (*product.SeckillActivity, error) {
+	resp, err := productClient.UpdateSeckill(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Base.Code != errno.SuccessCode {
+		return nil, errno.NewErrNo(resp.Base.Code, resp.Base.Msg)
+	}
+	return resp.Activity, nil
+}
+
 func SeckillList(ctx context.Context, req *product.ListSeckillRequest) ([]*product.SeckillActivity, int64, error) {
 	resp, err := productClient.ListSeckill(ctx, req)
 	if err != nil {
