@@ -1,8 +1,8 @@
-# tiktok
+# fashmall
 
 English | [简体中文](./docs/zh-cn.md)
 
-**tiktok** is a distributed **e-commerce seckill** backend based on RPC and HTTP protocols using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana
+**fashmall** is a distributed **e-commerce seckill** backend based on RPC and HTTP protocols using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana
 
 # Feature
 - Easy to start and deploy (local Docker or containerized runtime).
