@@ -2,15 +2,14 @@
 
 English | [简体中文](./docs/zh-cn.md)
 
-**tiktok** is a distributed **simple-tiktok** backend based on RPC and HTTP protocols using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana
+**tiktok** is a distributed **e-commerce seckill** backend based on RPC and HTTP protocols using Kitex + Hertz + etcd + MySQL + Jaeger + Docker + Thrift + Prometheus + Grafana + Elasticsearch + Kibana
 
 # Feature
-
-- Extremely easy to use and deploy.
-- Relatively mature CI/CD.
-- Relatively high code quality
-- Safety Considerations
-- Performance Optimization for Interfaces
+- Easy to start and deploy (local Docker or containerized runtime).
+- CI/CD pipeline suitable for incremental development and release.
+- Clear service boundaries and relatively high code quality.
+- Safety considerations (JWT authentication, input validation, and rate limiting).
+- API performance optimization (Redis atomic stock control and asynchronous order processing).
 
 # Architecture
 

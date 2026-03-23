@@ -2,15 +2,14 @@
 
 [English](../README.md) | 简体中文
 
-tiktok 是一个基于HTTP和RPC协议, 分布式架构的简单抖音后端. 它使用到了 Kitex、Hertz、etcd、MySQL、Jaeger、Docker、Thrift、Prometheus、Grafana、Elasticsearch和Kibana
+Flashmall 是一个基于 HTTP 和 RPC 协议的分布式电商秒杀后端。它使用到了 Kitex、Hertz、etcd、MySQL、Jaeger、Docker、Thrift、Prometheus、Grafana、Elasticsearch 和 Kibana
 
 # 特性
-
-- 极度容易的上手和部署
-- 相对完善的持续集成/持续部署工作六
-- 相对高的代码质量
-- 安全性考量
-- 对于接口的性能优化
+- 极易上手和部署（支持本地 Docker 与容器化运行）
+- 支持持续集成/持续部署流程，便于迭代发布
+- 服务边界清晰，代码结构较为完整
+- 安全性考量（JWT 鉴权、参数校验、限流）
+- 接口性能优化（Redis 原子扣减、异步下单）
 
 # 架构
 
