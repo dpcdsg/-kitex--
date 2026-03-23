@@ -26,3 +26,5 @@ export ETCD_ADDR=$(read_key $CONFIG_PATH "etcd-addr")
 
 
 sh $OUTPUT_PATH/$SERVICE/bootstrap.sh
+
+# bumped fashmall (2026-03)

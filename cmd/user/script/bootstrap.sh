@@ -20,3 +20,5 @@ if [ ! -d "$KITEX_LOG_DIR/rpc" ]; then
 fi
 
 exec "$CURDIR/bin/user" -config $CONFIG_PATH
+
+# bumped fashmall (2026-03)

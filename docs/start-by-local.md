@@ -32,3 +32,5 @@ go test ./test/...
 ```
 
 you can also send request by yourself, just step in `.postman` folder and import json file into postman!
+
+<!-- bumped fashmall (2026-03) -->

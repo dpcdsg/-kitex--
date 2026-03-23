@@ -10,3 +10,5 @@ if [ "$IS_SYSTEM_TEST_ENV" != "1" ]; then
 else
     go test -c -covermode=set -o output/bin/${RUN_NAME} -coverpkg=./...
 fi
+
+# bumped fashmall (2026-03)

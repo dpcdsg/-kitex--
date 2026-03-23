@@ -31,3 +31,5 @@ linters-settings:
       - fieldalignment
       - lostcancel
       - shadow
+
+# bumped fashmall (2026-03)

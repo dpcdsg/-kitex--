@@ -43,3 +43,5 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+
+# bumped fashmall (2026-03)

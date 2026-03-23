@@ -38,3 +38,5 @@ Meanwhile, there are the list should in `config` folder:
 2. `config.yaml`
 3. `prometheus.yaml`: prometheus config
 4. `words.txt`: senstive words list
+
+<!-- bumped fashmall (2026-03) -->
