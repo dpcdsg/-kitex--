@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { productCreate, productList, productUpdate, seckillCreate, seckillList, seckillUpdate } from '@/api/seckill';
+import {
+  MOCK_DPC_USER_ID,
+  productCreate,
+  productList,
+  productUpdate,
+  seckillCreate,
+  seckillList,
+  seckillUpdate,
+} from '@/api/seckill';
 import { useAuth } from '@/context/AuthContext';
 import type { Product, SeckillActivity } from '@/api/types';
 
 const MOCK_PRODUCT_IMAGE_URL = 'https://www.leagueoflegends.com/zh-tw/champions/katarina/';
+const DEFAULT_PRODUCT_IMAGE_URL = 'https://via.placeholder.com/640x360/f5f5f5/999999?text=No+Image';
 
 export function SellerPage() {
   const { token, userId } = useAuth();
@@ -12,12 +21,11 @@ export function SellerPage() {
   const [ok, setOk] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
-  const [productsIsMock, setProductsIsMock] = useState(false);
 
   const mockProducts: Product[] = useMemo(
     () => [
       {
-        id: 101,
+        id: '101',
         name: '模拟商品 A',
         description: '用于验证前端界面的演示商品。',
         price: 19900,
@@ -26,7 +34,7 @@ export function SellerPage() {
         category: '数码',
       },
       {
-        id: 102,
+        id: '102',
         name: '模拟商品 B',
         description: '当后端不可用或无数据时，这些数据会显示。',
         price: 9900,
@@ -65,23 +73,22 @@ export function SellerPage() {
 
     async function loadProducts() {
       if (!token || !userId) {
-        setProductsIsMock(true);
-        setProducts(mockProducts);
+        setProducts([]);
         return;
       }
 
       setProductsLoading(true);
-      setProductsIsMock(false);
       setErr(null);
 
       const ownedLocal = loadOwnedProducts();
+      const isDemoUser = userId === MOCK_DPC_USER_ID;
       try {
         const r = await productList(1, 50, token);
         const list = r.product_list ?? [];
 
-        const sellerFiltered = (list as unknown as Array<Product & { seller_id?: number }>).filter((p) => {
-          const sid = p.seller_id ?? 0;
-          return sid === userId && sid !== 0;
+        const sellerFiltered = (list as unknown as Array<Product & { seller_id?: string }>).filter((p) => {
+          const sid = p.seller_id ?? '';
+          return sid === String(userId) && sid !== '';
         });
 
         // 如果后端没有返回 seller_id 或过滤结果为空，回退到本地已创建商品
@@ -89,22 +96,22 @@ export function SellerPage() {
         if (!cancelled) {
           if (next.length > 0) {
             setProducts(next);
-            setProductsIsMock(false);
-          } else {
-            const mockedForMe = mockProducts.map((p) => ({ ...p, seller_id: userId }));
+          } else if (isDemoUser) {
+            const mockedForMe = mockProducts.map((p) => ({ ...p, seller_id: String(userId) }));
             setProducts(mockedForMe);
-            setProductsIsMock(true);
+          } else {
+            setProducts([]);
           }
         }
       } catch {
         if (!cancelled) {
           if (ownedLocal.length > 0) {
             setProducts(ownedLocal);
-            setProductsIsMock(false);
-          } else {
-            const mockedForMe = mockProducts.map((p) => ({ ...p, seller_id: userId }));
+          } else if (isDemoUser) {
+            const mockedForMe = mockProducts.map((p) => ({ ...p, seller_id: String(userId) }));
             setProducts(mockedForMe);
-            setProductsIsMock(true);
+          } else {
+            setProducts([]);
           }
         }
       } finally {
@@ -128,7 +135,7 @@ export function SellerPage() {
     async function loadActivities() {
       if (!products.length) {
         setActivities([]);
-        setActivitiesIsMock(true);
+        setActivitiesIsMock(false);
         return;
       }
 
@@ -138,31 +145,35 @@ export function SellerPage() {
 
       try {
         const r = await seckillList(1, 50, token);
-        const list = (r.activity_list ?? []).filter((a) => myProductIds.has(a.product_id));
+        const list = (r.activity_list ?? []).filter((a) => myProductIds.has(String(a.product_id)));
         if (!cancelled) setActivities(list);
       } catch {
         if (cancelled) return;
-        // 后端不可用时，用“商品列表”生成一个最小活动展示
-        const fallback = products.slice(0, 2).map((p, idx) => ({
-          id: 900000 + idx,
-          product_id: p.id,
-          product_name: p.name,
-          seckill_price: 5900 + idx * 100,
-          total_stock: p.stock,
-          available_stock: p.stock,
-          start_time: '2026-03-10 10:00:00',
-          end_time: '2026-03-10 11:00:00',
-          status: 1,
-        }));
-        setActivities(fallback);
-        setActivitiesIsMock(true);
+        if (userId === MOCK_DPC_USER_ID) {
+          const fallback = products.slice(0, 2).map((p, idx) => ({
+            id: String(900000 + idx),
+            product_id: p.id,
+            product_name: p.name,
+            seckill_price: 5900 + idx * 100,
+            total_stock: p.stock,
+            available_stock: p.stock,
+            start_time: '2026-03-10 10:00:00',
+            end_time: '2026-03-10 11:00:00',
+            status: 1,
+          }));
+          setActivities(fallback);
+          setActivitiesIsMock(true);
+        } else {
+          setActivities([]);
+          setActivitiesIsMock(false);
+        }
       } finally {
         if (!cancelled) setActivitiesLoading(false);
       }
     }
 
     if (!token) {
-      setActivitiesIsMock(true);
+      setActivitiesIsMock(false);
       setActivities([]);
       return;
     }
@@ -171,12 +182,12 @@ export function SellerPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, products]);
+  }, [token, userId, products]);
 
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
   const [showCreateSeckillModal, setShowCreateSeckillModal] = useState(false);
 
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const editingProduct = useMemo(() => products.find((p) => p.id === editingId) ?? null, [products, editingId]);
 
   const [eName, setEName] = useState('');
@@ -209,7 +220,7 @@ export function SellerPage() {
   const [pDesc, setPDesc] = useState('本地陶宝演示');
   const [pPrice, setPPrice] = useState('9900');
   const [pStock, setPStock] = useState('100');
-  const [pImg, setPImg] = useState(MOCK_PRODUCT_IMAGE_URL);
+  const [pImg, setPImg] = useState(DEFAULT_PRODUCT_IMAGE_URL);
   const [pCat, setPCat] = useState('数码');
 
   const [sProductId, setSProductId] = useState('');
@@ -218,7 +229,7 @@ export function SellerPage() {
   const [sStart, setSStart] = useState('');
   const [sEnd, setSEnd] = useState('');
 
-  const [editingActivityId, setEditingActivityId] = useState<number | null>(null);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
   const editingActivity = useMemo(
     () => activities.find((a) => a.id === editingActivityId) ?? null,
     [activities, editingActivityId],
@@ -256,13 +267,12 @@ export function SellerPage() {
       const next: Product = {
         ...(r.product as unknown as Product),
         id: r.product.id,
-        seller_id: userId ?? undefined,
+        seller_id: userId ? String(userId) : undefined,
       };
       setProducts((prev) => {
         const filtered = prev.filter((x) => x.id !== next.id);
         const merged = [next, ...filtered];
         saveOwnedProducts(merged);
-        setProductsIsMock(false);
         return merged;
       });
     } catch (e) {
@@ -275,21 +285,23 @@ export function SellerPage() {
     setErr(null);
     setOk(null);
     try {
-      const pid = parseInt(sProductId, 10);
       const sp = parseInt(sPrice, 10);
       const ts = parseInt(sStock, 10);
-      if (Number.isNaN(pid) || pid <= 0) {
+      if (!/^\d+$/.test(sProductId)) {
         setErr('请填写有效的商品 ID');
         return;
       }
-      if (!sStart || !sEnd) {
-        setErr('请选择开始与结束时间');
+      const startInput = sStart || defaultStart;
+      const endInput = sEnd || defaultEnd;
+      const timeErr = validateSeckillTimeRange(startInput, endInput);
+      if (timeErr) {
+        setErr(timeErr);
         return;
       }
-      const start = new Date(sStart).toISOString();
-      const end = new Date(sEnd).toISOString();
+      const start = new Date(startInput).toISOString();
+      const end = new Date(endInput).toISOString();
       const r = await seckillCreate(token!, {
-        product_id: pid,
+        product_id: sProductId,
         seckill_price: sp,
         total_stock: ts,
         start_time: start,
@@ -306,6 +318,25 @@ export function SellerPage() {
   const now = new Date();
   const defaultStart = new Date(now.getTime() + 60_000).toISOString().slice(0, 16);
   const defaultEnd = new Date(now.getTime() + 3600_000).toISOString().slice(0, 16);
+
+  function validateSeckillTimeRange(startInput: string, endInput: string): string | null {
+    const startDate = new Date(startInput);
+    const endDate = new Date(endInput);
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return '时间格式无效，请重新选择';
+    }
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    if (startDate.getTime() < todayStart.getTime() || endDate.getTime() < todayStart.getTime()) {
+      return '开始和结束时间不能早于今天';
+    }
+
+    if (endDate.getTime() - startDate.getTime() <= 1000) {
+      return '结束时间必须晚于开始时间 1 秒以上';
+    }
+    return null;
+  }
 
   async function onSaveEdit(e: React.FormEvent) {
     e.preventDefault();
@@ -395,10 +426,10 @@ export function SellerPage() {
     setErr(null);
     setOk(null);
 
-    const productId = parseInt(aProductId, 10);
+    const productId = aProductId;
     const seckillPrice = parseInt(aPrice, 10);
     const totalStock = parseInt(aStock, 10);
-    if (Number.isNaN(productId) || Number.isNaN(seckillPrice) || Number.isNaN(totalStock)) {
+    if (!/^\d+$/.test(productId) || Number.isNaN(seckillPrice) || Number.isNaN(totalStock)) {
       setErr('活动参数必须为有效数字');
       return;
     }
@@ -624,7 +655,9 @@ export function SellerPage() {
           <p className="muted">加载中…</p>
         ) : (
           <p className="muted">
-            {canEdit ? '仅允许编辑你创建的商品。后端不可用时会保持本地展示。' : productsIsMock ? '未登录：展示模拟数据' : '未登录：展示数据'}
+            {canEdit
+              ? '仅允许编辑你创建的商品。后端不可用时会保持本地展示。'
+              : '请登录后管理商品；演示账号 dpc/123 在无数据时可看到示例商品。'}
           </p>
         )}
 
@@ -654,11 +687,12 @@ export function SellerPage() {
                   }}
                 >
                   <img
-                    src={p.image_url || MOCK_PRODUCT_IMAGE_URL}
+                    src={p.image_url || (userId === MOCK_DPC_USER_ID ? MOCK_PRODUCT_IMAGE_URL : DEFAULT_PRODUCT_IMAGE_URL)}
                     alt={p.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = MOCK_PRODUCT_IMAGE_URL;
+                      (e.target as HTMLImageElement).src =
+                        userId === MOCK_DPC_USER_ID ? MOCK_PRODUCT_IMAGE_URL : DEFAULT_PRODUCT_IMAGE_URL;
                     }}
                   />
                 </div>
@@ -693,7 +727,11 @@ export function SellerPage() {
         {activitiesLoading ? (
           <p className="muted">加载中…</p>
         ) : (
-          <p className="muted">{activitiesIsMock ? '未从后端获取活动，展示本地演示数据。' : '展示你已发布的秒杀活动。'}</p>
+          <p className="muted">
+            {activitiesIsMock
+              ? '未从后端获取活动，展示本地演示数据（仅演示账号）。'
+              : '展示你已发布的秒杀活动。'}
+          </p>
         )}
         {activities.length === 0 ? (
           <p className="muted">暂无秒杀活动</p>

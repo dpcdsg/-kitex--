@@ -23,9 +23,9 @@ services:
         volumes:
             - ./config/sql:/docker-entrypoint-initdb.d/
             - ./data/mysql:/var/lib/mysql
-        # 若本机已有 MySQL 占用 3306，改为左侧端口 3307（与 config 中 mysql.addr 一致）
+        # 宿主机端口：Windows 常保留多段端口（含 3307–3406、13xxx 等），43306 一般可 bind；与 config 中 mysql.addr 一致
         ports:
-            - "3307:3306"
+            - "43306:3306"
         networks:
             - tiktok
 

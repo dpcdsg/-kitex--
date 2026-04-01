@@ -18,7 +18,7 @@ export function ProductDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await productDetail(Number(id), token);
+        const r = await productDetail(id, token);
         if (!cancelled) {
           setP(r.product);
           setErr(null);

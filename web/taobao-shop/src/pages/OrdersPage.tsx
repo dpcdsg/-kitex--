@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { orderCancel, orderList, orderPay } from '@/api/seckill';
+import { MOCK_DPC_USER_ID, orderCancel, orderList, orderPay } from '@/api/seckill';
 import { useAuth } from '@/context/AuthContext';
 import type { Order } from '@/api/types';
 import { fenToYuan } from '@/util/money';
@@ -14,7 +14,7 @@ const STATUS: Record<number, string> = {
 
 export function OrdersPage() {
   const nav = useNavigate();
-  const { token } = useAuth();
+  const { token, userId } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -59,17 +59,21 @@ export function OrdersPage() {
           setErr(null);
         }
       } catch (e) {
-        // 前端联调 mock：如果后端不可用/鉴权失败，则展示静态订单列表验证页面效果。
         if (!cancelled) {
-          setOrders(mockOrders);
-          setErr(null);
+          if (userId === MOCK_DPC_USER_ID) {
+            setOrders(mockOrders);
+            setErr(null);
+          } else {
+            setOrders([]);
+            setErr(e instanceof Error ? e.message : '加载失败');
+          }
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [token, nav]);
+  }, [token, userId, nav]);
 
   async function pay(orderNo: string) {
     if (!token) return;

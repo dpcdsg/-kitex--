@@ -20,7 +20,7 @@ services:
         volumes:
             - ./config/sql:/docker-entrypoint-initdb.d/
         ports:
-            - "3307:3306"
+            - "43306:3306"
         networks:
             - tiktok
 

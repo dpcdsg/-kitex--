@@ -1,7 +1,8 @@
 import { apiGet, apiPostJson } from './client';
 import type { Order, Product, SeckillActivity } from './types';
 
-const MOCK_DPC_USER_ID = 10001;
+/** dpc / 密码 123 的联调演示账号，仅此用户使用前端种子/默认数据 */
+export const MOCK_DPC_USER_ID = 10001;
 const MOCK_DPC_TOKEN = 'mock-token-dpc-123';
 const MOCK_PRODUCT_IMAGE_URL = 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Katarina_0.jpg';
 
@@ -31,31 +32,31 @@ function ensureSeed() {
   // products（SellerPage 的本地 owned 列表会直接使用同一个 key）
   const seededProducts: Product[] = [
     {
-      id: 101,
+      id: '101',
       name: '模拟商品 A',
       description: '用于验证前端界面的演示商品。',
       price: 19900,
       stock: 20,
       image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '数码',
-      seller_id: MOCK_DPC_USER_ID,
+      seller_id: String(MOCK_DPC_USER_ID),
     },
     {
-      id: 102,
+      id: '102',
       name: '模拟商品 B',
       description: '当后端不可用或无数据时，这些数据会显示。',
       price: 9900,
       stock: 80,
       image_url: MOCK_PRODUCT_IMAGE_URL,
       category: '家居',
-      seller_id: MOCK_DPC_USER_ID,
+      seller_id: String(MOCK_DPC_USER_ID),
     },
   ];
 
   const seededActivities: SeckillActivity[] = [
     {
-      id: 1000001,
-      product_id: 101,
+      id: '1000001',
+      product_id: '101',
       product_name: '模拟商品 A',
       seckill_price: 5900,
       total_stock: 100,
@@ -65,8 +66,8 @@ function ensureSeed() {
       status: 1,
     },
     {
-      id: 1000002,
-      product_id: 102,
+      id: '1000002',
+      product_id: '102',
       product_name: '模拟商品 B',
       seckill_price: 4900,
       total_stock: 200,
@@ -184,7 +185,7 @@ export async function productList(page: number, size: number, token?: string | n
   }>(`/product/list/?${q}`, token ?? null);
 }
 
-export async function productDetail(productId: number, token?: string | null) {
+export async function productDetail(productId: string, token?: string | null) {
   if (isMockDpcToken(token ?? null)) {
     ensureSeed();
     const all = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
@@ -192,7 +193,7 @@ export async function productDetail(productId: number, token?: string | null) {
     if (!p) throw new Error('商品不存在');
     return { product: p };
   }
-  const q = new URLSearchParams({ product_id: String(productId) });
+  const q = new URLSearchParams({ product_id: productId });
   return apiGet<{ product: Product }>(`/product/detail/?${q}`, token ?? null);
 }
 
@@ -210,16 +211,16 @@ export async function productCreate(
   if (isMockDpcToken(token)) {
     ensureSeed();
     const current = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
-    const nextId = current.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+    const nextId = current.reduce((m, p) => Math.max(m, Number(p.id) || 0), 0) + 1;
     const product: Product = {
-      id: nextId,
+      id: String(nextId),
       name: body.name,
       description: body.description,
       price: body.price,
       stock: body.stock,
       image_url: body.image_url,
       category: body.category,
-      seller_id: MOCK_DPC_USER_ID,
+      seller_id: String(MOCK_DPC_USER_ID),
     };
     const merged = [product, ...current];
     writeJson(LS_OWNED_PRODUCTS, merged);
@@ -235,7 +236,7 @@ export async function productCreate(
 export async function productUpdate(
   token: string,
   body: {
-    product_id: number;
+    product_id: string;
     name: string;
     description: string;
     price: number;
@@ -258,7 +259,7 @@ export async function productUpdate(
       stock: body.stock,
       image_url: body.image_url,
       category: body.category,
-      seller_id: MOCK_DPC_USER_ID,
+      seller_id: String(MOCK_DPC_USER_ID),
     };
 
     const next = current.slice();
@@ -294,7 +295,7 @@ export async function seckillList(page: number, size: number, token?: string | n
   );
 }
 
-export async function seckillDetail(activityId: number, token?: string | null) {
+export async function seckillDetail(activityId: string, token?: string | null) {
   if (isMockDpcToken(token ?? null)) {
     ensureSeed();
     const all = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
@@ -302,14 +303,14 @@ export async function seckillDetail(activityId: number, token?: string | null) {
     if (!a) throw new Error('秒杀活动不存在');
     return { activity: a };
   }
-  const q = new URLSearchParams({ activity_id: String(activityId) });
+  const q = new URLSearchParams({ activity_id: activityId });
   return apiGet<{ activity: SeckillActivity }>(`/activity/detail/?${q}`, token ?? null);
 }
 
 export async function seckillCreate(
   token: string,
   body: {
-    product_id: number;
+    product_id: string;
     seckill_price: number;
     total_stock: number;
     start_time: string;
@@ -321,9 +322,9 @@ export async function seckillCreate(
     const products = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
     const product = products.find((p) => p.id === body.product_id);
     const activities = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
-    const nextId = activities.reduce((m, a) => Math.max(m, a.id), 0) + 1;
+    const nextId = activities.reduce((m, a) => Math.max(m, Number(a.id) || 0), 0) + 1;
     const activity: SeckillActivity = {
-      id: nextId,
+      id: String(nextId),
       product_id: body.product_id,
       product_name: product?.name ?? `商品 #${body.product_id}`,
       seckill_price: body.seckill_price,
@@ -346,8 +347,8 @@ export async function seckillCreate(
 export async function seckillUpdate(
   token: string,
   body: {
-    activity_id: number;
-    product_id: number;
+    activity_id: string;
+    product_id: string;
     seckill_price: number;
     total_stock: number;
     start_time: string;
@@ -393,7 +394,7 @@ export async function seckillUpdate(
   );
 }
 
-export async function seckillAction(token: string, activityId: number) {
+export async function seckillAction(token: string, activityId: string) {
   if (isMockDpcToken(token)) {
     ensureSeed();
     const activities = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
@@ -416,9 +417,9 @@ export async function seckillAction(token: string, activityId: number) {
       id: nextId,
       order_no: orderNo,
       user_id: MOCK_DPC_USER_ID,
-      product_id: activity.product_id,
+      product_id: Number(activity.product_id),
       product_name: activity.product_name,
-      activity_id: activityId,
+      activity_id: Number(activityId),
       amount: activity.seckill_price,
       status: 0,
       created_at: nowStr(),

@@ -68,17 +68,6 @@ func ProductUpdate(ctx context.Context, req *product.UpdateProductRequest) (*pro
 	return resp.Product, nil
 }
 
-func ProductUpdate(ctx context.Context, req *product.UpdateProductRequest) (*product.Product, error) {
-	resp, err := productClient.UpdateProduct(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.Base.Code != errno.SuccessCode {
-		return nil, errno.NewErrNo(resp.Base.Code, resp.Base.Msg)
-	}
-	return resp.Product, nil
-}
-
 func ProductDetail(ctx context.Context, productId int64, token string) (*product.Product, error) {
 	resp, err := productClient.GetProduct(ctx, &product.GetProductRequest{
 		ProductId: productId,

@@ -15,10 +15,11 @@ create table tiktok.`user`
 create table tiktok.`product`
 (
     `id`          bigint auto_increment not null,
+    `seller_id`   bigint                              not null,
     `name`        varchar(255)                        not null,
     `description` text                                not null,
     `price`       bigint                              not null comment 'unit: cent',
-    `stock`       bigint                              not null default 0,
+    `stock`       bigint                              not null def·ault 0,
     `image_url`   varchar(512)                        not null default '',
     `category`    varchar(64)                         not null default '',
     `status`      tinyint   default 1                 not null comment '1:on 0:off',
@@ -27,6 +28,7 @@ create table tiktok.`product`
     `deleted_at`  timestamp default null null,
     constraint `id`
         primary key (`id`),
+        index `idx_seller` (`seller_id`),
         index `idx_category` (`category`),
         index `idx_status` (`status`)
 ) engine=InnoDB default charset=utf8mb4;

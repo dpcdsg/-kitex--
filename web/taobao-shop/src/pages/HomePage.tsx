@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { productList, seckillList } from '@/api/seckill';
+import { MOCK_DPC_USER_ID, productList, seckillList } from '@/api/seckill';
 import { useAuth } from '@/context/AuthContext';
 import type { Product, SeckillActivity } from '@/api/types';
 import { fenToYuan } from '@/util/money';
@@ -12,11 +12,13 @@ export function HomePage() {
   const { token, userId } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [activities, setActivities] = useState<SeckillActivity[]>([]);
-  const [err, setErr] = useState<string | null>(null);
+  /** 分开展示错误：避免秒杀接口慢/失败时拖住商品列表渲染（原先 Promise.all 会等两者都结束才 setState） */
+  const [productErr, setProductErr] = useState<string | null>(null);
+  const [activityErr, setActivityErr] = useState<string | null>(null);
 
   const mockProducts: Product[] = [
     {
-      id: 101,
+      id: '101',
       name: '模拟商品 A',
       description: '用于验证前端展示逻辑的模拟商品。',
       price: 19900,
@@ -25,7 +27,7 @@ export function HomePage() {
       category: '数码',
     },
     {
-      id: 102,
+      id: '102',
       name: '模拟商品 B',
       description: '当后端不可用时，首页仍可展示模拟数据。',
       price: 9900,
@@ -37,8 +39,8 @@ export function HomePage() {
 
   const mockActivities: SeckillActivity[] = [
     {
-      id: 1000001,
-      product_id: 101,
+      id: '1000001',
+      product_id: '101',
       product_name: '模拟商品 A',
       seckill_price: 5900,
       total_stock: 100,
@@ -48,8 +50,8 @@ export function HomePage() {
       status: 1,
     },
     {
-      id: 1000002,
-      product_id: 102,
+      id: '1000002',
+      product_id: '102',
       product_name: '模拟商品 B',
       seckill_price: 4900,
       total_stock: 200,
@@ -64,31 +66,49 @@ export function HomePage() {
     let cancelled = false;
     (async () => {
       // mock dpc/123：直接使用模拟数据，确保页面展示链路稳定
-      if (userId === 10001) {
+      if (userId === MOCK_DPC_USER_ID) {
         setProducts(mockProducts);
         setActivities(mockActivities);
-        setErr(null);
+        setProductErr(null);
+        setActivityErr(null);
         return;
       }
 
-      try {
-        const [p, s] = await Promise.all([
-          productList(1, 24, token),
-          seckillList(1, 8, token, -1),
-        ]);
-        if (!cancelled) {
-          setProducts(p.product_list || []);
-          setActivities(s.activity_list || []);
-          setErr(null);
-        }
-      } catch (e) {
-        if (!cancelled) setErr(e instanceof Error ? e.message : '加载失败');
-      }
+      setProductErr(null);
+      setActivityErr(null);
+
+      productList(1, 24, token)
+        .then((p) => {
+          if (!cancelled) {
+            setProducts(p.product_list || []);
+            setProductErr(null);
+          }
+        })
+        .catch((e) => {
+          if (!cancelled) {
+            setProducts([]);
+            setProductErr(e instanceof Error ? e.message : '加载失败');
+          }
+        });
+
+      seckillList(1, 8, token, -1)
+        .then((s) => {
+          if (!cancelled) {
+            setActivities(s.activity_list || []);
+            setActivityErr(null);
+          }
+        })
+        .catch((e) => {
+          if (!cancelled) {
+            setActivities([]);
+            setActivityErr(e instanceof Error ? e.message : '加载失败');
+          }
+        });
     })();
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, userId]);
 
   return (
     <div className="container">
@@ -96,9 +116,11 @@ export function HomePage() {
         <h2 style={{ fontSize: '1.25rem', borderLeft: '4px solid #ff5000', paddingLeft: 10, marginBottom: 16 }}>
           限时秒杀
         </h2>
-        {err && <p className="err">{err}</p>}
+        {activityErr && <p className="err">{activityErr}</p>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-          {activities.length === 0 && !err && <p className="muted">暂无秒杀活动，请先在卖家中心创建商品与活动。</p>}
+          {activities.length === 0 && !activityErr && (
+            <p className="muted">暂无秒杀活动，请先在卖家中心创建商品与活动。</p>
+          )}
           {activities.map((a) => (
             <Link key={a.id} to={`/seckill/${a.id}`} className="card" style={{ padding: 12, display: 'block' }}>
               <div style={{ fontWeight: 600, marginBottom: 8 }}>{a.product_name || `商品 #${a.product_id}`}</div>
@@ -115,6 +137,7 @@ export function HomePage() {
         <h2 style={{ fontSize: '1.25rem', borderLeft: '4px solid #ff5000', paddingLeft: 10, marginBottom: 16 }}>
           猜你喜欢
         </h2>
+        {productErr && <p className="err">{productErr}</p>}
         <div className="grid-products">
           {products.map((p) => (
             <Link key={p.id} to={`/product/${p.id}`} className="card" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -140,7 +163,7 @@ export function HomePage() {
             </Link>
           ))}
         </div>
-        {products.length === 0 && !err && <p className="muted">暂无商品。</p>}
+        {products.length === 0 && !productErr && <p className="muted">暂无商品。</p>}
       </section>
     </div>
   );

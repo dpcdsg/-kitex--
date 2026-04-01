@@ -19,7 +19,7 @@ export function SeckillDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await seckillDetail(Number(id), token);
+        const r = await seckillDetail(id, token);
         if (!cancelled) {
           setA(r.activity);
           setErr(null);
@@ -41,7 +41,7 @@ export function SeckillDetailPage() {
     setMsg(null);
     setLoading(true);
     try {
-      const r = await seckillAction(token, Number(id));
+      const r = await seckillAction(token, id);
       setMsg(`下单成功，订单号：${r.order_no}`);
     } catch (e) {
       setMsg(e instanceof Error ? e.message : '秒杀失败');

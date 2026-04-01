@@ -1,6 +1,6 @@
 # 在 Docker Compose 的 tiktok 网络内运行 api/user/product/order 时使用。
 # 通过 docker-compose.apps.yml 挂载为 etcd 的 /config/config.yaml 并写入 etcd，
-# 与宿主机直连（127.0.0.1:3307 等）的 config.yaml 区分开。
+# 与宿主机直连（127.0.0.1:43306 等）的 config.yaml 区分开。
 
 etcd-addr: etcd:2379
 
