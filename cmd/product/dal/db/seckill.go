@@ -71,3 +71,10 @@ func DeductStock(ctx context.Context, id int64) error {
 	}
 	return nil
 }
+
+func UpdateSeckill(ctx context.Context, id int64, updates map[string]interface{}) (*SeckillActivity, error) {
+	if err := DB.WithContext(ctx).Model(&SeckillActivity{}).Where("id = ?", id).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+	return GetSeckillByID(ctx, id)
+}

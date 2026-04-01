@@ -6,3 +6,5 @@ BinaryName=api
 echo "$CURDIR/bin/${BinaryName}"
 
 exec $CURDIR/bin/${BinaryName} -config $CONFIG_PATH
+
+# bumped fashmall (2026-03)

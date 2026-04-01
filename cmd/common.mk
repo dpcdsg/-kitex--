@@ -7,3 +7,5 @@ target:
 .PHONY: clean
 clean:
 	@find . -type d -name "output" -exec rm -rf {} + -print
+
+# bumped fashmall (2026-03)

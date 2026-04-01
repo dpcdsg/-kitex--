@@ -16,6 +16,7 @@ type Client interface {
 	GetProduct(ctx context.Context, req *product.GetProductRequest, callOptions ...callopt.Option) (r *product.GetProductResponse, err error)
 	ListProducts(ctx context.Context, req *product.ListProductsRequest, callOptions ...callopt.Option) (r *product.ListProductsResponse, err error)
 	CreateSeckill(ctx context.Context, req *product.CreateSeckillRequest, callOptions ...callopt.Option) (r *product.CreateSeckillResponse, err error)
+	UpdateSeckill(ctx context.Context, req *product.UpdateSeckillRequest, callOptions ...callopt.Option) (r *product.UpdateSeckillResponse, err error)
 	GetSeckill(ctx context.Context, req *product.GetSeckillRequest, callOptions ...callopt.Option) (r *product.GetSeckillResponse, err error)
 	ListSeckill(ctx context.Context, req *product.ListSeckillRequest, callOptions ...callopt.Option) (r *product.ListSeckillResponse, err error)
 	DeductStock(ctx context.Context, req *product.DeductStockRequest, callOptions ...callopt.Option) (r *product.DeductStockResponse, err error)
@@ -75,6 +76,11 @@ func (p *kProductServiceClient) CreateSeckill(ctx context.Context, req *product.
 	return p.kClient.CreateSeckill(ctx, req)
 }
 
+func (p *kProductServiceClient) UpdateSeckill(ctx context.Context, req *product.UpdateSeckillRequest, callOptions ...callopt.Option) (r *product.UpdateSeckillResponse, err error) {
+	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
+	return p.kClient.UpdateSeckill(ctx, req)
+}
+
 func (p *kProductServiceClient) GetSeckill(ctx context.Context, req *product.GetSeckillRequest, callOptions ...callopt.Option) (r *product.GetSeckillResponse, err error) {
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.GetSeckill(ctx, req)
@@ -89,3 +95,4 @@ func (p *kProductServiceClient) DeductStock(ctx context.Context, req *product.De
 	ctx = client.NewCtxWithCallOptions(ctx, callOptions)
 	return p.kClient.DeductStock(ctx, req)
 }
+

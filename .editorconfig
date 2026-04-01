@@ -7,3 +7,5 @@ end_of_line = lf
 
 [*.yaml]
 indent_size = 2
+
+# bumped fashmall (2026-03)

@@ -48,6 +48,13 @@ var serviceMethods = map[string]kitex.MethodInfo{
 		false,
 		kitex.WithStreamingMode(kitex.StreamingNone),
 	),
+	"UpdateSeckill": kitex.NewMethodInfo(
+		updateSeckillHandler,
+		newProductServiceUpdateSeckillArgs,
+		newProductServiceUpdateSeckillResult,
+		false,
+		kitex.WithStreamingMode(kitex.StreamingNone),
+	),
 	"GetSeckill": kitex.NewMethodInfo(
 		getSeckillHandler,
 		newProductServiceGetSeckillArgs,
@@ -225,6 +232,24 @@ func newProductServiceCreateSeckillResult() interface{} {
 	return product.NewProductServiceCreateSeckillResult()
 }
 
+func updateSeckillHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
+	realArg := arg.(*product.ProductServiceUpdateSeckillArgs)
+	realResult := result.(*product.ProductServiceUpdateSeckillResult)
+	success, err := handler.(product.ProductService).UpdateSeckill(ctx, realArg.Req)
+	if err != nil {
+		return err
+	}
+	realResult.Success = success
+	return nil
+}
+func newProductServiceUpdateSeckillArgs() interface{} {
+	return product.NewProductServiceUpdateSeckillArgs()
+}
+
+func newProductServiceUpdateSeckillResult() interface{} {
+	return product.NewProductServiceUpdateSeckillResult()
+}
+
 func getSeckillHandler(ctx context.Context, handler interface{}, arg, result interface{}) error {
 	realArg := arg.(*product.ProductServiceGetSeckillArgs)
 	realResult := result.(*product.ProductServiceGetSeckillResult)
@@ -334,6 +359,16 @@ func (p *kClient) CreateSeckill(ctx context.Context, req *product.CreateSeckillR
 	_args.Req = req
 	var _result product.ProductServiceCreateSeckillResult
 	if err = p.c.Call(ctx, "CreateSeckill", &_args, &_result); err != nil {
+		return
+	}
+	return _result.GetSuccess(), nil
+}
+
+func (p *kClient) UpdateSeckill(ctx context.Context, req *product.UpdateSeckillRequest) (r *product.UpdateSeckillResponse, err error) {
+	var _args product.ProductServiceUpdateSeckillArgs
+	_args.Req = req
+	var _result product.ProductServiceUpdateSeckillResult
+	if err = p.c.Call(ctx, "UpdateSeckill", &_args, &_result); err != nil {
 		return
 	}
 	return _result.GetSuccess(), nil

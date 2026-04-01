@@ -100,6 +100,21 @@ struct CreateSeckillResponse {
     2: SeckillActivity activity,
 }
 
+struct UpdateSeckillRequest {
+    1: string token,
+    2: i64 activity_id,
+    3: i64 product_id,
+    4: i64 seckill_price,
+    5: i64 total_stock,
+    6: string start_time,
+    7: string end_time,
+}
+
+struct UpdateSeckillResponse {
+    1: BaseResp base,
+    2: SeckillActivity activity,
+}
+
 struct GetSeckillRequest {
     1: i64 activity_id,
     2: string token,
@@ -138,6 +153,7 @@ service ProductService {
     GetProductResponse GetProduct(1: GetProductRequest req),
     ListProductsResponse ListProducts(1: ListProductsRequest req),
     CreateSeckillResponse CreateSeckill(1: CreateSeckillRequest req),
+    UpdateSeckillResponse UpdateSeckill(1: UpdateSeckillRequest req),
     GetSeckillResponse GetSeckill(1: GetSeckillRequest req),
     ListSeckillResponse ListSeckill(1: ListSeckillRequest req),
     DeductStockResponse DeductStock(1: DeductStockRequest req),

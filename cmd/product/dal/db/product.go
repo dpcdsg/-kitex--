@@ -9,7 +9,6 @@ import (
 
 type Product struct {
 	Id          int64          `gorm:"primaryKey"`
-	SellerId    int64          `gorm:"not null;index;default:0"`
 	Name        string         `gorm:"type:varchar(255);not null"`
 	Description string         `gorm:"type:text"`
 	Price       int64          `gorm:"not null"`
@@ -59,13 +58,19 @@ func ListProducts(ctx context.Context, page, size int64, category string) ([]*Pr
 	return products, total, nil
 }
 
-func UpdateProduct(ctx context.Context, p *Product) error {
-	return DB.WithContext(ctx).Model(&Product{}).Where("id = ?", p.Id).Updates(map[string]interface{}{
+func UpdateProduct(ctx context.Context, p *Product) (*Product, error) {
+	updates := map[string]interface{}{
 		"name":        p.Name,
 		"description": p.Description,
 		"price":       p.Price,
 		"stock":       p.Stock,
 		"image_url":   p.ImageUrl,
 		"category":    p.Category,
-	}).Error
+	}
+
+	if err := DB.WithContext(ctx).Model(&Product{}).Where("id = ?", p.Id).Updates(updates).Error; err != nil {
+		return nil, err
+	}
+
+	return GetProductByID(ctx, p.Id)
 }

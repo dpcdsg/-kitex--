@@ -37,6 +37,10 @@ func Register(r *server.Hertz) {
 				_list := _activity.Group("/list", _listMw()...)
 				_list.GET("/", append(_seckilllistMw(), api.SeckillList)...)
 			}
+			{
+				_update0 := _activity.Group("/update", _update0Mw()...)
+				_update0.POST("/", append(_seckillupdateMw(), api.SeckillUpdate)...)
+			}
 		}
 		{
 			_order := _seckill.Group("/order", _orderMw()...)

@@ -33,3 +33,5 @@ jobs:
           push: true
           tags: registry.cn-hangzhou.aliyuncs.com/ozline/tiktok:v1
           platforms: linux/arm64, linux/amd64
+
+# bumped fashmall (2026-03)

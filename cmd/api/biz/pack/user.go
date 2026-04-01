@@ -5,21 +5,18 @@ import (
 	"github.com/ozline/tiktok/kitex_gen/user"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func User(u *user.User) *api.User {
 	if u == nil {
 		return nil
 	}
-	out := &api.User{
-		ID:   u.Id,
-		Name: u.Name,
+	return &api.User{
+		ID:        u.Id,
+		Name:      u.Name,
+		Avatar:    strPtr(u.Avatar),
+		Signature: strPtr(u.Signature),
 	}
-	if u.Avatar != "" {
-		a := u.Avatar
-		out.Avatar = &a
-	}
-	if u.Signature != "" {
-		s := u.Signature
-		out.Signature = &s
-	}
-	return out
 }

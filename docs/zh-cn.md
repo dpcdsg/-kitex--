@@ -1,18 +1,15 @@
-# FlashMall（闪购商城）
+# tiktok
 
 [English](../README.md) | 简体中文
 
-**FlashMall（闪购商城）** 是基于 Kitex 的电商与秒杀场景后端：HTTP + RPC 微服务架构，技术栈包括 Kitex、Hertz、etcd、MySQL、Jaeger、Docker、Thrift、Prometheus、Grafana、Elasticsearch 和 Kibana。（由 simple-tiktok 课程栈演进；Docker/数据库等内部标识仍可能沿用历史名称 `tiktok`。）
-
-> **GitHub 仓库名建议：** `kitex-flash-mall`。在仓库 **Settings → General → Repository name** 修改后，在本机执行：`git remote set-url origin https://github.com/dpcdsg/kitex-flash-mall.git`
+Flashmall 是一个基于 HTTP 和 RPC 协议的分布式电商秒杀后端。它使用到了 Kitex、Hertz、etcd、MySQL、Jaeger、Docker、Thrift、Prometheus、Grafana、Elasticsearch 和 Kibana
 
 # 特性
-
-- 极度容易的上手和部署
-- 相对完善的持续集成/持续部署工作六
-- 相对高的代码质量
-- 安全性考量
-- 对于接口的性能优化
+- 极易上手和部署（支持本地 Docker 与容器化运行）
+- 支持持续集成/持续部署流程，便于迭代发布
+- 服务边界清晰，代码结构较为完整
+- 安全性考量（JWT 鉴权、参数校验、限流）
+- 接口性能优化（Redis 原子扣减、异步下单）
 
 # 架构
 
@@ -130,7 +127,7 @@ deploy
 
 # 测试
 
-你可以把 `.postman/flashmall.openapi.json` 丢到 Postman 中然后开始测试
+你可以把 `.postman/tiktok.openapi.json` 丢到Postman中然后开始测试
 
 # 可视化样例
 

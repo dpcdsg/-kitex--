@@ -5,6 +5,7 @@ go 1.20
 replace github.com/apache/thrift => github.com/apache/thrift v0.13.0
 
 require (
+	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/gopkg v0.1.10
 	github.com/cloudwego/hertz v0.6.7
 	github.com/cloudwego/kitex v0.16.1
@@ -34,7 +35,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/firestore v1.9.0 // indirect
 	cloud.google.com/go/longrunning v0.4.1 // indirect
-	github.com/apache/thrift v0.13.0 // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect
@@ -90,7 +90,7 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/fsnotify/fsnotify v1.6.0
+	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect

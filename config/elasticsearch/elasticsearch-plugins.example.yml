@@ -25,3 +25,5 @@ plugins:
 # Configures a proxy for all network access. Remove this if you don't need
 # to use a proxy.
 proxy: https://some.domain:1234
+
+# bumped fashmall (2026-03)

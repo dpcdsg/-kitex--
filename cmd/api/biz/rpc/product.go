@@ -68,6 +68,17 @@ func ProductUpdate(ctx context.Context, req *product.UpdateProductRequest) (*pro
 	return resp.Product, nil
 }
 
+func ProductUpdate(ctx context.Context, req *product.UpdateProductRequest) (*product.Product, error) {
+	resp, err := productClient.UpdateProduct(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Base.Code != errno.SuccessCode {
+		return nil, errno.NewErrNo(resp.Base.Code, resp.Base.Msg)
+	}
+	return resp.Product, nil
+}
+
 func ProductDetail(ctx context.Context, productId int64, token string) (*product.Product, error) {
 	resp, err := productClient.GetProduct(ctx, &product.GetProductRequest{
 		ProductId: productId,
@@ -98,6 +109,17 @@ func ProductList(ctx context.Context, req *product.ListProductsRequest) ([]*prod
 
 func SeckillCreate(ctx context.Context, req *product.CreateSeckillRequest) (*product.SeckillActivity, error) {
 	resp, err := productClient.CreateSeckill(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Base.Code != errno.SuccessCode {
+		return nil, errno.NewErrNo(resp.Base.Code, resp.Base.Msg)
+	}
+	return resp.Activity, nil
+}
+
+func SeckillUpdate(ctx context.Context, req *product.UpdateSeckillRequest) (*product.SeckillActivity, error) {
+	resp, err := productClient.UpdateSeckill(ctx, req)
 	if err != nil {
 		return nil, err
 	}

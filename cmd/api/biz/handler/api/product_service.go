@@ -10,6 +10,16 @@ import (
 	"github.com/ozline/tiktok/kitex_gen/product"
 )
 
+type seckillUpdateRequest struct {
+	Token        string `json:"token" form:"token" query:"token"`
+	ActivityID   int64  `json:"activity_id" form:"activity_id" query:"activity_id"`
+	ProductID    int64  `json:"product_id" form:"product_id" query:"product_id"`
+	SeckillPrice int64  `json:"seckill_price" form:"seckill_price" query:"seckill_price"`
+	TotalStock   int64  `json:"total_stock" form:"total_stock" query:"total_stock"`
+	StartTime    string `json:"start_time" form:"start_time" query:"start_time"`
+	EndTime      string `json:"end_time" form:"end_time" query:"end_time"`
+}
+
 // ProductCreate .
 // @router /seckill/product/create/ [POST]
 func ProductCreate(ctx context.Context, c *app.RequestContext) {
@@ -25,7 +35,7 @@ func ProductCreate(ctx context.Context, c *app.RequestContext) {
 		Description: req.Description,
 		Price:       req.Price,
 		Stock:       req.Stock,
-		ImageUrl:    req.ImageURL,
+		ImageUrl:    req.GetImageURL(),
 		Category:    req.Category,
 	})
 	if err != nil {
@@ -120,6 +130,37 @@ func SeckillCreate(ctx context.Context, c *app.RequestContext) {
 	pack.SendResponse(c, resp)
 }
 
+// SeckillUpdate .
+// @router /seckill/activity/update/ [POST]
+func SeckillUpdate(ctx context.Context, c *app.RequestContext) {
+	var req seckillUpdateRequest
+	if err := c.BindAndValidate(&req); err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	activity, err := rpc.SeckillUpdate(ctx, &product.UpdateSeckillRequest{
+		Token:        req.Token,
+		ActivityId:   req.ActivityID,
+		ProductId:    req.ProductID,
+		SeckillPrice: req.SeckillPrice,
+		TotalStock:   req.TotalStock,
+		StartTime:    req.StartTime,
+		EndTime:      req.EndTime,
+	})
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"status_code": int64(0),
+		"status_msg":  "success",
+		"activity":    pack.SeckillActivity(activity),
+	}
+	pack.SendResponse(c, resp)
+}
+
 // SeckillList .
 // @router /seckill/activity/list/ [GET]
 func SeckillList(ctx context.Context, c *app.RequestContext) {
@@ -185,14 +226,14 @@ func ProductUpdate(ctx context.Context, c *app.RequestContext) {
 	}
 
 	p, err := rpc.ProductUpdate(ctx, &product.UpdateProductRequest{
-		Token:       req.Token,
-		ProductId:   req.ProductID,
-		Name:        req.Name,
-		Description: req.Description,
-		Price:       req.Price,
-		Stock:       req.Stock,
-		ImageUrl:    req.ImageURL,
-		Category:    req.Category,
+		Token:       req.GetToken(),
+		ProductId:   req.GetProductID(),
+		Name:        req.GetName(),
+		Description: req.GetDescription(),
+		Price:       req.GetPrice(),
+		Stock:       req.GetStock(),
+		ImageUrl:    req.GetImageURL(),
+		Category:    req.GetCategory(),
 	})
 	if err != nil {
 		pack.SendFailResponse(c, err)
@@ -201,5 +242,6 @@ func ProductUpdate(ctx context.Context, c *app.RequestContext) {
 
 	resp := new(api.ProductUpdateResponse)
 	resp.Product = pack.Product(p)
+
 	pack.SendResponse(c, resp)
 }
