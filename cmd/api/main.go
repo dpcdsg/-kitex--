@@ -21,6 +21,7 @@ import (
 	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
 	apiHandler "github.com/ozline/tiktok/cmd/api/biz/handler/api"
 	"github.com/ozline/tiktok/cmd/api/biz/middleware/es"
+	"github.com/ozline/tiktok/cmd/api/biz/middleware/metrics"
 	"github.com/ozline/tiktok/cmd/api/biz/rpc"
 	"github.com/ozline/tiktok/config"
 	"github.com/ozline/tiktok/pkg/constants"
@@ -79,6 +80,9 @@ func main() {
 	// Gzip
 	r.Use(gzip.Gzip(gzip.BestSpeed))
 
+	// Prometheus metrics
+	r.Use(metrics.Middleware())
+
 	// Sentinel 流量治理
 	r.Use(hertzSentinel.SentinelServerMiddleware(
 		hertzSentinel.WithServerResourceExtractor(func(c context.Context, ctx *app.RequestContext) string {
@@ -104,6 +108,9 @@ func main() {
 
 	// Normal product buy
 	r.POST("/seckill/order/buy/", apiHandler.OrderBuy)
+
+	// Prometheus scrape endpoint
+	r.GET("/metrics", metrics.Handler)
 
 	r.Spin()
 }
