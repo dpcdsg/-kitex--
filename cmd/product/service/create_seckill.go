@@ -24,6 +24,11 @@ func (s *ProductService) CreateSeckill(req *product.CreateSeckillRequest) (*db.S
 		return nil, errno.ProductPermissionDeniedError
 	}
 
+	// 秒杀总库存以普通商品库存为上限，避免“商品库存不够但秒杀仍可卖出”的问题。
+	if req.TotalStock > prod.Stock {
+		return nil, errno.ParamError.WithMessage("秒杀总库存不能大于商品库存")
+	}
+
 	startTime, err := time.Parse(time.RFC3339, req.StartTime)
 	if err != nil {
 		return nil, errno.ParamError.WithMessage("invalid start_time format")
@@ -49,7 +54,8 @@ func (s *ProductService) CreateSeckill(req *product.CreateSeckillRequest) (*db.S
 		return nil, err
 	}
 
-	_ = cache.WarmUpSeckillStock(s.ctx, result.Id, result.AvailableStock)
+	_ = cache.WarmUpProductStock(s.ctx, prod.Id, prod.Stock)
+	_ = cache.WarmUpSeckillStock(s.ctx, result.Id, result.ProductId, result.AvailableStock)
 
 	return result, nil
 }

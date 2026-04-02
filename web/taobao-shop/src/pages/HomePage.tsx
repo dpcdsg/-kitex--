@@ -12,6 +12,7 @@ export function HomePage() {
   const { token, userId } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [activities, setActivities] = useState<SeckillActivity[]>([]);
+  const visibleActivities = activities.filter((a) => a.available_stock > 0);
   /** 分开展示错误：避免秒杀接口慢/失败时拖住商品列表渲染（原先 Promise.all 会等两者都结束才 setState） */
   const [productErr, setProductErr] = useState<string | null>(null);
   const [activityErr, setActivityErr] = useState<string | null>(null);
@@ -118,10 +119,10 @@ export function HomePage() {
         </h2>
         {activityErr && <p className="err">{activityErr}</p>}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
-          {activities.length === 0 && !activityErr && (
+          {visibleActivities.length === 0 && !activityErr && (
             <p className="muted">暂无秒杀活动，请先在卖家中心创建商品与活动。</p>
           )}
-          {activities.map((a) => (
+          {visibleActivities.map((a) => (
             <Link key={a.id} to={`/seckill/${a.id}`} className="card" style={{ padding: 12, display: 'block' }}>
               <div style={{ fontWeight: 600, marginBottom: 8 }}>{a.product_name || `商品 #${a.product_id}`}</div>
               <div className="price">{fenToYuan(a.seckill_price)}</div>

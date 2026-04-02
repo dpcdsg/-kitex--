@@ -19,6 +19,7 @@ import (
 	"github.com/hertz-contrib/gzip"
 	hertzSentinel "github.com/hertz-contrib/opensergo/sentinel/adapter"
 	kitexlogrus "github.com/kitex-contrib/obs-opentelemetry/logging/logrus"
+	apiHandler "github.com/ozline/tiktok/cmd/api/biz/handler/api"
 	"github.com/ozline/tiktok/cmd/api/biz/middleware/es"
 	"github.com/ozline/tiktok/cmd/api/biz/rpc"
 	"github.com/ozline/tiktok/config"
@@ -93,6 +94,16 @@ func main() {
 	))
 
 	register(r)
+
+	// Product publish/delete (soft delete)
+	// These routes are not present in the generated router; we register them manually here.
+	r.POST("/seckill/product/delete/", apiHandler.ProductDelete)
+
+	// Seckill activity soft delete
+	r.POST("/seckill/activity/delete/", apiHandler.SeckillActivityDelete)
+
+	// Normal product buy
+	r.POST("/seckill/order/buy/", apiHandler.OrderBuy)
 
 	r.Spin()
 }

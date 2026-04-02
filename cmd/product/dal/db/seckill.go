@@ -58,18 +58,38 @@ func ListSeckills(ctx context.Context, status, page, size int64) ([]*SeckillActi
 	return activities, total, nil
 }
 
-func DeductStock(ctx context.Context, id int64) error {
-	result := DB.WithContext(ctx).
-		Model(&SeckillActivity{}).
-		Where("id = ? AND available_stock > 0", id).
-		Update("available_stock", gorm.Expr("available_stock - 1"))
-	if result.Error != nil {
-		return result.Error
+func DeductStock(ctx context.Context, activityId int64, productId int64) error {
+	// 关键：秒杀扣减成功后，同步扣减商品真实库存，防止“秒杀超卖但商品库存没变”。
+	tx := DB.WithContext(ctx).Begin()
+	if tx.Error != nil {
+		return tx.Error
 	}
-	if result.RowsAffected == 0 {
+
+	res1 := tx.Model(&SeckillActivity{}).
+		Where("id = ? AND available_stock > 0", activityId).
+		Update("available_stock", gorm.Expr("available_stock - 1"))
+	if res1.Error != nil {
+		_ = tx.Rollback()
+		return res1.Error
+	}
+	if res1.RowsAffected == 0 {
+		_ = tx.Rollback()
 		return gorm.ErrRecordNotFound
 	}
-	return nil
+
+	res2 := tx.Model(&Product{}).
+		Where("id = ? AND stock > 0", productId).
+		Update("stock", gorm.Expr("stock - 1"))
+	if res2.Error != nil {
+		_ = tx.Rollback()
+		return res2.Error
+	}
+	if res2.RowsAffected == 0 {
+		_ = tx.Rollback()
+		return gorm.ErrRecordNotFound
+	}
+
+	return tx.Commit().Error
 }
 
 func UpdateSeckill(ctx context.Context, id int64, updates map[string]interface{}) (*SeckillActivity, error) {

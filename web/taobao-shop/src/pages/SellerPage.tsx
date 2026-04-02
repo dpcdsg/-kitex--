@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   MOCK_DPC_USER_ID,
   productCreate,
+  productDelete,
   productList,
   productUpdate,
   seckillCreate,
+  seckillDelete,
   seckillList,
   seckillUpdate,
 } from '@/api/seckill';
@@ -21,6 +23,8 @@ export function SellerPage() {
   const [ok, setOk] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [busyProductId, setBusyProductId] = useState<string | null>(null);
+  const [busyActivityId, setBusyActivityId] = useState<string | null>(null);
 
   const mockProducts: Product[] = useMemo(
     () => [
@@ -126,6 +130,7 @@ export function SellerPage() {
   }, [token, userId, mockProducts, productsStorageKey]);
 
   const [activities, setActivities] = useState<SeckillActivity[]>([]);
+  const visibleActivities = activities.filter((a) => a.available_stock > 0);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activitiesIsMock, setActivitiesIsMock] = useState(false);
 
@@ -211,6 +216,49 @@ export function SellerPage() {
 
   function cancelEdit() {
     setEditingId(null);
+  }
+
+  async function onDeleteProduct(productId: string) {
+    if (!token) return;
+    setErr(null);
+    setOk(null);
+    setBusyProductId(productId);
+    try {
+      await productDelete(token, productId);
+      setOk('删除成功（已软删除）');
+
+      setProducts((prev) => {
+        const next = prev.filter((p) => p.id !== productId);
+        saveOwnedProducts(next);
+        return next;
+      });
+
+      if (editingId === productId) cancelEdit();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '删除失败');
+    } finally {
+      setBusyProductId(null);
+    }
+  }
+
+  async function onDeleteActivity(activityId: string) {
+    if (!token) return;
+    setErr(null);
+    setOk(null);
+    setBusyActivityId(activityId);
+    try {
+      await seckillDelete(token, activityId);
+      setOk('秒杀活动已删除（软删除）');
+      setActivities((prev) => {
+        const next = prev.filter((a) => a.id !== activityId);
+        return next;
+      });
+      if (editingActivityId === activityId) cancelEditActivity();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '删除活动失败');
+    } finally {
+      setBusyActivityId(null);
+    }
   }
 
   const canEdit = !!token && !!userId;
@@ -706,6 +754,16 @@ export function SellerPage() {
                     </div>
                   </div>
                   <div>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', marginBottom: 10 }}>
+                      <button
+                        type="button"
+                        className="btn-ghost"
+                        disabled={!canEditProducts || busyProductId === p.id}
+                        onClick={() => onDeleteProduct(p.id)}
+                      >
+                        删除
+                      </button>
+                    </div>
                     <button
                       type="button"
                       className="btn-primary"
@@ -733,11 +791,11 @@ export function SellerPage() {
               : '展示你已发布的秒杀活动。'}
           </p>
         )}
-        {activities.length === 0 ? (
+        {visibleActivities.length === 0 ? (
           <p className="muted">暂无秒杀活动</p>
         ) : (
           <div style={{ display: 'flex', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-            {activities.map((a) => (
+            {visibleActivities.map((a) => (
               <div
                 key={a.id}
                 style={{
@@ -758,9 +816,24 @@ export function SellerPage() {
                   {a.start_time} ~ {a.end_time}
                 </div>
                 <div style={{ marginTop: 10 }}>
-                  <button type="button" className="btn-primary" disabled={!canEdit} onClick={() => startEditActivity(a)}>
-                    修改活动
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      disabled={!canEdit || busyActivityId === a.id}
+                      onClick={() => startEditActivity(a)}
+                    >
+                      修改活动
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      disabled={!canEdit || busyActivityId === a.id}
+                      onClick={() => onDeleteActivity(a.id)}
+                    >
+                      删除活动
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

@@ -20,6 +20,11 @@ func (s *ProductService) UpdateSeckill(req *product.UpdateSeckillRequest) (*prod
 		return nil, errno.ParamError.WithMessage("product not found")
 	}
 
+	// 秒杀总库存以普通商品库存为上限，避免扣减真实库存不同步导致的超卖。
+	if req.TotalStock > p.Stock {
+		return nil, errno.ParamError.WithMessage("秒杀总库存不能大于商品库存")
+	}
+
 	startTime, err := time.Parse(time.RFC3339, req.StartTime)
 	if err != nil {
 		return nil, errno.ParamError.WithMessage("invalid start_time format")
@@ -64,7 +69,8 @@ func (s *ProductService) UpdateSeckill(req *product.UpdateSeckillRequest) (*prod
 		return nil, err
 	}
 
-	_ = cache.WarmUpSeckillStock(s.ctx, updated.Id, updated.AvailableStock)
+	_ = cache.WarmUpProductStock(s.ctx, p.Id, p.Stock)
+	_ = cache.WarmUpSeckillStock(s.ctx, updated.Id, updated.ProductId, updated.AvailableStock)
 
 	return &product.SeckillActivity{
 		Id:             updated.Id,

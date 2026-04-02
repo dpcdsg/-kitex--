@@ -22,7 +22,8 @@ func SendFailResponse(c *app.RequestContext, err error) {
 
 	c.JSON(consts.StatusOK, Response{
 		Code: -1,
-		Msg:  errno.ConvertErr(err).Error(),
+		// 前端只展示“错误含义”，不再直接显示错误码（例如 [10103] ...）。
+		Msg: errno.ConvertErr(err).ErrorMsg,
 	})
 }
 

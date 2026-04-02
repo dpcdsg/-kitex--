@@ -274,6 +274,46 @@ export async function productUpdate(
   );
 }
 
+export async function productPublish(token: string, productId: string) {
+  if (isMockDpcToken(token)) {
+    // mock 模式不区分发布/删除，仅用于接口连通性
+    return {};
+  }
+  return apiPostJson<Record<string, unknown>>('/product/publish/', { token, product_id: productId }, token);
+}
+
+export async function productDelete(token: string, productId: string) {
+  if (isMockDpcToken(token)) {
+    // mock 下：从本地 owned 列表移除（模拟软删除效果）
+    ensureSeed();
+    const products = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
+    const idx = products.findIndex((p) => p.id === productId);
+    if (idx >= 0) {
+      const next = products.slice();
+      next.splice(idx, 1);
+      writeJson(LS_OWNED_PRODUCTS, next);
+    }
+    return {};
+  }
+  return apiPostJson<Record<string, unknown>>('/product/delete/', { token, product_id: productId }, token);
+}
+
+export async function seckillDelete(token: string, activityId: string) {
+  if (isMockDpcToken(token)) {
+    ensureSeed();
+    const activities = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
+    const next = activities.filter((a) => a.id !== activityId);
+    writeJson(LS_SECKILL_ACTIVITIES, next);
+    return {};
+  }
+
+  return apiPostJson<Record<string, unknown>>(
+    '/activity/delete/',
+    { token, activity_id: activityId },
+    token,
+  );
+}
+
 export async function seckillList(page: number, size: number, token?: string | null, status = -1) {
   if (isMockDpcToken(token ?? null)) {
     ensureSeed();
@@ -395,6 +435,7 @@ export async function seckillUpdate(
 }
 
 export async function seckillAction(token: string, activityId: string) {
+  // activityId 来自 URL params（string），后端 expects int64。
   if (isMockDpcToken(token)) {
     ensureSeed();
     const activities = readJson<SeckillActivity[]>(LS_SECKILL_ACTIVITIES, []);
@@ -419,7 +460,8 @@ export async function seckillAction(token: string, activityId: string) {
       user_id: MOCK_DPC_USER_ID,
       product_id: Number(activity.product_id),
       product_name: activity.product_name,
-      activity_id: Number(activityId),
+      // mock 下订单列表不展示 activity_id；用 0 避免 JS number 精度问题
+      activity_id: 0,
       amount: activity.seckill_price,
       status: 0,
       created_at: nowStr(),
@@ -430,6 +472,57 @@ export async function seckillAction(token: string, activityId: string) {
   return apiPostJson<{ order_no: string }>(
     '/action/',
     { token, activity_id: activityId },
+    token,
+  );
+}
+
+/**
+ * 普通商品下单（当前仅在 dpc/123 mock 模式可用）。
+ * 后端未提供普通下单接口时会直接抛错。
+ */
+export async function productBuy(token: string, productId: string) {
+  if (isMockDpcToken(token)) {
+    ensureSeed();
+
+    const products = readJson<Product[]>(LS_OWNED_PRODUCTS, []);
+    const idx = products.findIndex((p) => p.id === productId);
+    if (idx < 0) throw new Error('商品不存在');
+
+    const product = products[idx];
+    if (product.stock <= 0) throw new Error('库存不足/已售罄');
+
+    // 扣减库存（仅影响 mock，本地“我的商品”列表会同步展示）
+    const nextProducts = products.slice();
+    const updatedProduct: Product = { ...product, stock: product.stock - 1 };
+    nextProducts[idx] = updatedProduct;
+    writeJson(LS_OWNED_PRODUCTS, nextProducts);
+
+    const orders = readJson<Order[]>(LS_ORDERS, []);
+    const nextId = orders.reduce((m, o) => Math.max(m, o.id), 0) + 1;
+    const orderNo = `N${nextId}`;
+
+    const productIdNum = Number(product.id);
+    if (!Number.isFinite(productIdNum)) throw new Error('非法 product_id');
+
+    const order: Order = {
+      id: nextId,
+      order_no: orderNo,
+      user_id: MOCK_DPC_USER_ID,
+      product_id: productIdNum,
+      product_name: product.name,
+      activity_id: 0,
+      amount: product.price,
+      status: 0,
+      created_at: nowStr(),
+    };
+
+    writeJson(LS_ORDERS, [order, ...orders]);
+    return { order_no: orderNo };
+  }
+
+  return apiPostJson<{ order_no: string }>(
+    '/order/buy/',
+    { token, product_id: productId },
     token,
   );
 }

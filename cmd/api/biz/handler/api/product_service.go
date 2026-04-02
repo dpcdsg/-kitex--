@@ -3,12 +3,16 @@ package api
 import (
 	"context"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
 	api "github.com/ozline/tiktok/cmd/api/biz/model/api"
 	"github.com/ozline/tiktok/cmd/api/biz/pack"
 	"github.com/ozline/tiktok/cmd/api/biz/rpc"
+	productdb "github.com/ozline/tiktok/cmd/product/dal/db"
 	"github.com/ozline/tiktok/kitex_gen/product"
+	"github.com/ozline/tiktok/pkg/utils"
 )
 
 type productDetailRequest struct {
@@ -376,5 +380,219 @@ func ProductUpdate(ctx context.Context, c *app.RequestContext) {
 		"product":     productToJSON(p),
 	}
 
+	pack.SendResponse(c, resp)
+}
+
+type productPublishRequest struct {
+	Token     string `json:"token" form:"token" query:"token"`
+	ProductID string `json:"product_id" form:"product_id" query:"product_id"`
+}
+
+type productDeleteRequest struct {
+	Token     string `json:"token" form:"token" query:"token"`
+	ProductID string `json:"product_id" form:"product_id" query:"product_id"`
+}
+
+var initProductDBOnce sync.Once
+
+func ensureProductDB() {
+	initProductDBOnce.Do(func() {
+		productdb.Init()
+	})
+}
+
+// ProductPublish .
+// @router /seckill/product/publish/ [POST]
+// publish = soft-delete-unset + set status=1
+func ProductPublish(ctx context.Context, c *app.RequestContext) {
+	ensureProductDB()
+
+	var req productPublishRequest
+	if err := c.BindAndValidate(&req); err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	productID, err := strconv.ParseInt(req.ProductID, 10, 64)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// Unscoped to allow publish even if the record is soft-deleted.
+	var p productdb.Product
+	if err := productdb.DB.Unscoped().Where("id = ? AND seller_id = ?", productID, claims.UserId).First(&p).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// 软删除：删除时写 deleted_at；发布时清空 deleted_at。
+	if err := productdb.DB.Unscoped().
+		Model(&productdb.Product{}).
+		Where("id = ? AND seller_id = ?", productID, claims.UserId).
+		Updates(map[string]interface{}{
+			"status":     1,
+			"deleted_at": nil,
+			"updated_at": time.Now(),
+		}).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"status_code": int64(0),
+		"status_msg":  "success",
+		"product_id":  productID,
+	}
+	pack.SendResponse(c, resp)
+}
+
+// ProductDelete .
+// @router /seckill/product/delete/ [POST]
+// soft delete = set deleted_at
+func ProductDelete(ctx context.Context, c *app.RequestContext) {
+	ensureProductDB()
+
+	var req productDeleteRequest
+	if err := c.BindAndValidate(&req); err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	productID, err := strconv.ParseInt(req.ProductID, 10, 64)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// Unscoped to check deleted_at.
+	var p productdb.Product
+	if err := productdb.DB.Unscoped().Where("id = ? AND seller_id = ?", productID, claims.UserId).First(&p).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	if p.DeletedAt.Valid {
+		// Already soft-deleted
+		resp := map[string]interface{}{
+			"status_code": int64(0),
+			"status_msg":  "success",
+			"product_id":  productID,
+			"deleted_at":  p.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+		}
+		pack.SendResponse(c, resp)
+		return
+	}
+
+	// GORM soft delete will populate deleted_at.
+	if err := productdb.DB.Where("id = ? AND seller_id = ?", productID, claims.UserId).Delete(&productdb.Product{}).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// Reload to return the actual deleted_at timestamp.
+	var deleted productdb.Product
+	if err := productdb.DB.Unscoped().Where("id = ? AND seller_id = ?", productID, claims.UserId).First(&deleted).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"status_code": int64(0),
+		"status_msg":  "success",
+		"product_id":  productID,
+		"deleted_at":  deleted.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+	pack.SendResponse(c, resp)
+}
+
+type seckillDeleteRequest struct {
+	Token      string `json:"token" form:"token" query:"token"`
+	ActivityID string `json:"activity_id" form:"activity_id" query:"activity_id"`
+}
+
+// SeckillActivityDelete .
+// @router /seckill/activity/delete/ [POST]
+// soft delete = set deleted_at
+func SeckillActivityDelete(ctx context.Context, c *app.RequestContext) {
+	ensureProductDB()
+
+	var req seckillDeleteRequest
+	if err := c.BindAndValidate(&req); err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	claims, err := utils.CheckToken(req.Token)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	activityID, err := strconv.ParseInt(req.ActivityID, 10, 64)
+	if err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// Ensure ownership: seckill_activity has no seller_id, so join product.seller_id.
+	productIDs := productdb.DB.Model(&productdb.Product{}).
+		Select("id").
+		Where("seller_id = ?", claims.UserId)
+
+	// Unscoped to check deleted_at.
+	var act productdb.SeckillActivity
+	if err := productdb.DB.Unscoped().
+		Where("id = ? AND product_id IN (?)", activityID, productIDs).
+		First(&act).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	if act.DeletedAt.Valid {
+		resp := map[string]interface{}{
+			"status_code": int64(0),
+			"status_msg":  "success",
+			"activity_id": activityID,
+			"deleted_at":  act.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+		}
+		pack.SendResponse(c, resp)
+		return
+	}
+
+	// GORM soft delete will populate deleted_at.
+	if err := productdb.DB.Where("id = ? AND product_id IN (?)", activityID, productIDs).
+		Delete(&productdb.SeckillActivity{}).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	// Reload to return the actual deleted_at timestamp.
+	var deleted productdb.SeckillActivity
+	if err := productdb.DB.Unscoped().
+		Where("id = ? AND product_id IN (?)", activityID, productIDs).
+		First(&deleted).Error; err != nil {
+		pack.SendFailResponse(c, err)
+		return
+	}
+
+	resp := map[string]interface{}{
+		"status_code": int64(0),
+		"status_msg":  "success",
+		"activity_id": activityID,
+		"deleted_at":  deleted.DeletedAt.Time.Format("2006-01-02 15:04:05"),
+	}
 	pack.SendResponse(c, resp)
 }

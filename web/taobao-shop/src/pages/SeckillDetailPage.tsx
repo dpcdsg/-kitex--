@@ -67,6 +67,8 @@ export function SeckillDetailPage() {
     );
   }
 
+  const soldOut = a.available_stock <= 0;
+
   return (
     <div className="container" style={{ maxWidth: 640 }}>
       <h1 style={{ fontSize: '1.35rem' }}>{a.product_name}</h1>
@@ -83,9 +85,15 @@ export function SeckillDetailPage() {
         <Link to={`/product/${a.product_id}`}>查看原商品</Link>
       </p>
       {msg && <p style={{ color: msg.startsWith('下单') ? '#080' : '#c00' }}>{msg}</p>}
-      <button type="button" className="btn-primary" style={{ marginTop: 12 }} onClick={onSeckill} disabled={loading}>
-        {loading ? '提交中…' : '立即秒杀'}
-      </button>
+      {soldOut ? (
+        <p className="err" style={{ marginTop: 12 }}>
+          该秒杀活动已售罄
+        </p>
+      ) : (
+        <button type="button" className="btn-primary" style={{ marginTop: 12 }} onClick={onSeckill} disabled={loading}>
+          {loading ? '提交中…' : '立即秒杀'}
+        </button>
+      )}
       <p style={{ marginTop: 16 }}>
         <Link to="/">返回首页</Link>
       </p>

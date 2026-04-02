@@ -33,8 +33,12 @@ func (s *OrderService) Seckill(userId, activityId int64) (string, error) {
 	}
 
 	now := time.Now()
-	startTime, _ := time.Parse("2006-01-02 15:04:05", activity.StartTime)
-	endTime, _ := time.Parse("2006-01-02 15:04:05", activity.EndTime)
+	// activity.StartTime/EndTime 返回的是“不带时区”的字符串。
+	// 若直接 time.Parse(...)，Go 会把它当作 UTC，可能导致与服务端本地时区比较时提前/延后判定。
+	// 使用 ParseInLocation 按服务端本地时区解释这些时间字符串。
+	const layout = "2006-01-02 15:04:05"
+	startTime, _ := time.ParseInLocation(layout, activity.StartTime, time.Local)
+	endTime, _ := time.ParseInLocation(layout, activity.EndTime, time.Local)
 
 	if now.Before(startTime) {
 		cache.RemoveSeckillRepeatFlag(s.ctx, userId, activityId)

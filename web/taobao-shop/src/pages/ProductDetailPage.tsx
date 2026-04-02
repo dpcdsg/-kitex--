@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { productDetail } from '@/api/seckill';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { productBuy, productDetail } from '@/api/seckill';
 import { useAuth } from '@/context/AuthContext';
 import type { Product } from '@/api/types';
 import { fenToYuan } from '@/util/money';
@@ -10,8 +10,11 @@ const PLACEHOLDER = 'https://via.placeholder.com/400x400/f5f5f5/ff5000?text=陶�
 export function ProductDetailPage() {
   const { id } = useParams();
   const { token } = useAuth();
+  const nav = useNavigate();
   const [p, setP] = useState<Product | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -31,6 +34,26 @@ export function ProductDetailPage() {
       cancelled = true;
     };
   }, [id, token]);
+
+  async function onBuy() {
+    if (!token || !id) {
+      nav('/login');
+      return;
+    }
+    if (!p) return;
+
+    setMsg(null);
+    setLoading(true);
+    try {
+      const r = await productBuy(token, p.id);
+      setMsg(`下单成功，订单号：${r.order_no}`);
+      setP({ ...p, stock: Math.max(0, p.stock - 1) });
+    } catch (e) {
+      setMsg(e instanceof Error ? e.message : '下单失败');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (err) {
     return (
@@ -72,6 +95,18 @@ export function ProductDetailPage() {
           <div style={{ marginTop: 16, padding: 12, background: '#fafafa', borderRadius: 8 }}>
             {p.description || '暂无描述'}
           </div>
+
+          {msg && <p style={{ color: msg.startsWith('下单') ? '#080' : '#c00' }}>{msg}</p>}
+          <button
+            type="button"
+            className="btn-primary"
+            style={{ marginTop: 12 }}
+            onClick={onBuy}
+            disabled={loading || p.stock <= 0}
+          >
+            {loading ? '提交中…' : p.stock <= 0 ? '已售罄' : '立即购买'}
+          </button>
+
           <p style={{ marginTop: 24 }}>
             <Link to="/">返回首页</Link>
           </p>
