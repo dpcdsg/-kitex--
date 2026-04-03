@@ -1204,7 +1204,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "TikTok API / 秒杀 QPS 与业务指标",
+  "title": "Tabao API / 秒杀 QPS 与业务指标",
   "uid": "tiktok-api-seckill",
   "version": 1,
   "weekStart": ""

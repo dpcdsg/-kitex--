@@ -1,7 +1,9 @@
 # 在基础设施已启动后，拉起四个业务容器（Windows / macOS 的 Docker Desktop 也可用）。
 # 用法（在项目根目录）:
 #   docker compose -f docker-compose.yml -f docker-compose.apps.yml up -d
-# 首次使用请先构建镜像: docker build -t tiktok .
+# 首次使用请先构建镜像。推荐（清悬空层、压缩 C 盘 Docker 数据盘后再 build）:
+#   .\scripts\redeploy-docker.ps1
+# 或仅快速: docker build -t tiktok:latest .
 #
 # 说明：会额外把 config/config.docker.yaml 挂到 etcd 容器的 /config/config.yaml，
 # 以便 etcd-monitor 将「容器网络版」配置写入 etcd；业务容器通过 ETCD_ADDR=etcd:2379 连接。

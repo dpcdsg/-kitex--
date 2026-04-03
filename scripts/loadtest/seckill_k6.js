@@ -1,7 +1,8 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
 
-const BASE_URL = __ENV.BASE_URL || "http://127.0.0.1:8080";
+// 全栈 Docker（docker-compose.apps.yml）下 API 映射为宿主机 10001:10001
+const BASE_URL = __ENV.BASE_URL || "http://127.0.0.1:10001";
 const USERNAME = __ENV.USERNAME || "dpc";
 const PASSWORD = __ENV.PASSWORD || "123";
 const ACTIVITY_ID = __ENV.ACTIVITY_ID || "1000001";
@@ -17,6 +18,13 @@ export const options = {
 };
 
 export function setup() {
+  // 用户可能尚未存在：先注册（已存在时接口返回业务错误，忽略即可）
+  http.post(
+    `${BASE_URL}/seckill/user/register/`,
+    JSON.stringify({ username: USERNAME, password: PASSWORD }),
+    { headers: { "Content-Type": "application/json" } }
+  );
+
   const loginResp = http.post(
     `${BASE_URL}/seckill/user/login/`,
     JSON.stringify({
@@ -35,13 +43,17 @@ export function setup() {
   let token = "";
   try {
     const body = loginResp.json();
-    token = body.token || "";
+    if (Number(body.status_code) === 0 && body.token) {
+      token = body.token;
+    }
   } catch (e) {
     token = "";
   }
 
   if (!token) {
-    throw new Error("login failed: token is empty");
+    throw new Error(
+      "login failed: no token (check USERNAME/PASSWORD and that user service is up)"
+    );
   }
 
   return { token };

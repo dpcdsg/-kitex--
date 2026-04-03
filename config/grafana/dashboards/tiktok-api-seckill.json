@@ -659,7 +659,7 @@
   "time": {"from": "now-30m", "to": "now"},
   "timepicker": {},
   "timezone": "browser",
-  "title": "TikTok API / 秒杀 QPS 与业务指标",
+  "title": "Taobao API / 秒杀 QPS 与业务指标",
   "uid": "tiktok-api-seckill",
   "version": 1,
   "weekStart": ""
