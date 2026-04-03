@@ -18,4 +18,15 @@ scrape_configs:
     static_configs:
     - targets: ['mysql-exporter:9104']
 
+  # Hertz API：GET /metrics。可同时配两个地址，不用的那个会在 Targets 里显示 DOWN，属正常。
+  # - 宿主机跑 API（常见 8080）：host.docker.internal:8080
+  # - 全栈 Docker（docker-compose.apps.yml 的 tiktok-api）：tiktok-api:10001（与 prometheus 同 tiktok 网络）
+  - job_name: 'api'
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - 'host.docker.internal:8080'
+          - 'tiktok-api:10001'
+
 # bumped fashmall (2026-03)

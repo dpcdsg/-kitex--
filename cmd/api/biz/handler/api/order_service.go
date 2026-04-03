@@ -7,6 +7,7 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	api "github.com/ozline/tiktok/cmd/api/biz/model/api"
+	"github.com/ozline/tiktok/cmd/api/biz/middleware/metrics"
 	"github.com/ozline/tiktok/cmd/api/biz/pack"
 	"github.com/ozline/tiktok/cmd/api/biz/rpc"
 	orderdb "github.com/ozline/tiktok/cmd/order/dal/db"
@@ -24,14 +25,19 @@ type seckillActionRequest struct {
 // SeckillAction .
 // @router /seckill/action/ [POST]
 func SeckillAction(ctx context.Context, c *app.RequestContext) {
+	var bizErr error
+	defer func() { metrics.RecordBusinessResult(metrics.HandlerSeckillAction, bizErr) }()
+
 	var req seckillActionRequest
 	if err := c.BindAndValidate(&req); err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
 
 	activityID, err := strconv.ParseInt(req.ActivityID, 10, 64)
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
@@ -41,6 +47,7 @@ func SeckillAction(ctx context.Context, c *app.RequestContext) {
 		ActivityId: activityID,
 	})
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
@@ -60,20 +67,26 @@ var initOrderDBOnce sync.Once
 // OrderBuy .
 // @router /seckill/order/buy/ [POST]
 func OrderBuy(ctx context.Context, c *app.RequestContext) {
+	var bizErr error
+	defer func() { metrics.RecordBusinessResult(metrics.HandlerOrderBuy, bizErr) }()
+
 	var req orderBuyRequest
 	if err := c.BindAndValidate(&req); err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
 
 	productID, err := strconv.ParseInt(req.ProductID, 10, 64)
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
 
 	claims, err := utils.CheckToken(req.Token)
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
@@ -81,10 +94,12 @@ func OrderBuy(ctx context.Context, c *app.RequestContext) {
 	// 1) 查询商品信息（包含价格/库存）
 	p, err := rpc.ProductDetail(ctx, productID, req.Token)
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
 	if p == nil || p.Stock <= 0 {
+		bizErr = errno.StockSoldOutError
 		pack.SendFailResponse(c, errno.StockSoldOutError)
 		return
 	}
@@ -102,6 +117,7 @@ func OrderBuy(ctx context.Context, c *app.RequestContext) {
 		Category:    p.Category,
 	})
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
@@ -115,6 +131,7 @@ func OrderBuy(ctx context.Context, c *app.RequestContext) {
 		Amount:     p.Price,
 	})
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}

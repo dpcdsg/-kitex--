@@ -8,6 +8,7 @@ import (
 
 	"github.com/cloudwego/hertz/pkg/app"
 	api "github.com/ozline/tiktok/cmd/api/biz/model/api"
+	"github.com/ozline/tiktok/cmd/api/biz/middleware/metrics"
 	"github.com/ozline/tiktok/cmd/api/biz/pack"
 	"github.com/ozline/tiktok/cmd/api/biz/rpc"
 	productdb "github.com/ozline/tiktok/cmd/product/dal/db"
@@ -281,8 +282,12 @@ func SeckillUpdate(ctx context.Context, c *app.RequestContext) {
 // SeckillList .
 // @router /seckill/activity/list/ [GET]
 func SeckillList(ctx context.Context, c *app.RequestContext) {
+	var bizErr error
+	defer func() { metrics.RecordBusinessResult(metrics.HandlerSeckillActivityList, bizErr) }()
+
 	var req api.SeckillListRequest
 	if err := c.BindAndValidate(&req); err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}
@@ -303,6 +308,7 @@ func SeckillList(ctx context.Context, c *app.RequestContext) {
 		Size:   size,
 	})
 	if err != nil {
+		bizErr = err
 		pack.SendFailResponse(c, err)
 		return
 	}

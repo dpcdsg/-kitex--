@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/ozline/tiktok/pkg/errno"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/expfmt"
 )
@@ -39,6 +40,23 @@ var (
 		},
 		[]string{"method", "path"},
 	)
+
+	// Business-layer outcomes (JSON status_code may still be 200 while errno != 0).
+	businessRequestsTotal = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "api_business_requests_total",
+			Help: "API handler outcomes by logical result; complements api_http_requests_total.",
+		},
+		[]string{"handler", "result", "error_code"},
+	)
+)
+
+// Handler names for api_business_requests_total{handler=...}.
+const (
+	HandlerSeckillAction       = "seckill_action"
+	HandlerSeckillActivityList = "seckill_activity_list"
+	HandlerOrderBuy            = "order_buy"
+	HandlerUserLogin           = "user_login"
 )
 
 func registerMetrics() {
@@ -46,7 +64,19 @@ func registerMetrics() {
 		prometheus.MustRegister(httpRequestsTotal)
 		prometheus.MustRegister(httpRequestDurationSeconds)
 		prometheus.MustRegister(httpRequestsInFlight)
+		prometheus.MustRegister(businessRequestsTotal)
 	})
+}
+
+// RecordBusinessResult records one logical handler outcome (success or errno).
+func RecordBusinessResult(handler string, err error) {
+	registerMetrics()
+	if err == nil {
+		businessRequestsTotal.WithLabelValues(handler, "ok", "0").Inc()
+		return
+	}
+	en := errno.ConvertErr(err)
+	businessRequestsTotal.WithLabelValues(handler, "error", strconv.FormatInt(en.ErrorCode, 10)).Inc()
 }
 
 func Middleware() app.HandlerFunc {
